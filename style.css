@@ -1,0 +1,33 @@
+#myCanvas{
+	margin: auto;
+	border: 1px solid black;
+	display: block;
+}
+#startButton{
+	display: inline;
+	width: 100px;
+	height: 100%;
+}
+#endButton{
+	display: inline;
+	width: 100px;
+	height: 100%;
+}
+#wallButton{
+	display: inline;
+	width: 100px;
+	height: 100%;
+}
+#clearButton{
+	display: inline;
+	width: 100px;
+	height: 100%;
+}
+#buttons{
+	width:auto;
+	height: 50px;
+	border: 1px solid grey;
+}
+h1{
+	text-align: center;
+}
