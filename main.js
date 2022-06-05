@@ -1,6 +1,7 @@
 /** @type {CanvasRenderingContext2D} */
-const CANVAS_WIDTH = 800;
-const CANVAS_HEIGHT = 400;
+const CANVAS_WIDTH = 100;
+const CANVAS_HEIGHT = 100;
+const pixelWidth = 7;
 
 class Queue {
 	// Array is used to implement a Queue
@@ -27,14 +28,15 @@ class Queue {
 
 $(document).ready(function () {
 	canvas = document.querySelector("#myCanvas");
-	canvas.height = CANVAS_HEIGHT;
-	canvas.width = CANVAS_WIDTH;
+	canvas.height = CANVAS_HEIGHT * pixelWidth;
+	canvas.width = CANVAS_WIDTH * pixelWidth;
 	var ctx = canvas.getContext("2d");
 	makeGrid(ctx);
 	let startX = -1, startY = -1, endX = -1, endY = -1;
-	let wall = new Array(CANVAS_HEIGHT / 20);
-	for (var i = 0; i < wall.length; i++)
-		wall[i] = new Array(CANVAS_WIDTH / 20);
+	let wall = new Array(CANVAS_HEIGHT);
+
+	for (var i = 0; i < CANVAS_HEIGHT; i++)
+		wall[i] = new Array(CANVAS_WIDTH);
 	resetWall(wall);
 	console.log(wall);
 	let mode = 0;
@@ -79,8 +81,8 @@ $(document).ready(function () {
 		let x = e.clientX - rect.left;
 		let y = e.clientY - rect.top;
 		var color;
-		x = (x - (x % 20)) / 20;
-		y = (y - (y % 20)) / 20;
+		x = (x - (x % pixelWidth)) / pixelWidth;
+		y = (y - (y % pixelWidth)) / pixelWidth;
 		console.log(`x: ${x} y: ${y}`);
 		if (mode === 1) {
 			if (wall[y][x] === 1 || (endX === x && endY === y))
@@ -119,8 +121,8 @@ $(document).ready(function () {
 		var rect = canvas.getBoundingClientRect();
 		let x = e.clientX - rect.left;
 		let y = e.clientY - rect.top;
-		x = (x - (x % 20)) / 20;
-		y = (y - (y % 20)) / 20;
+		x = (x - (x % pixelWidth)) / pixelWidth;
+		y = (y - (y % pixelWidth)) / pixelWidth;
 		if (wall[y][x] === 1)
 			return;
 		if (startX === x && startY === y) {
@@ -145,29 +147,29 @@ $(document).ready(function () {
 })
 
 function makePixel(x, y, ctx, color) {
-	x *= 20;
-	y *= 20;
+	x *= pixelWidth;
+	y *= pixelWidth;
 	ctx.fillStyle = color;
-	ctx.fillRect(x, y, 20, 20);
+	ctx.fillRect(x, y, pixelWidth, pixelWidth);
 }
 
 function makeGrid(ctx) {
 	ctx.strokeStyle = 'light grey';
 	ctx.lineWidth = 0.5;
-	for (var i = 20; i <= CANVAS_WIDTH - 20; i += 20) {
-		ctx.moveTo(i, 0);
-		ctx.lineTo(i, CANVAS_HEIGHT);
+	for (var i = 1; i <= CANVAS_WIDTH - 1; i++) {
+		ctx.moveTo(i * pixelWidth, 0);
+		ctx.lineTo(i * pixelWidth, CANVAS_HEIGHT * pixelWidth);
 	}
-	for (var i = 20; i <= CANVAS_HEIGHT - 20; i += 20) {
-		ctx.moveTo(0, i);
-		ctx.lineTo(CANVAS_WIDTH, i);
+	for (var i = 1; i <= CANVAS_HEIGHT - 1; i++) {
+		ctx.moveTo(0, i * pixelWidth);
+		ctx.lineTo(CANVAS_WIDTH * pixelWidth, i * pixelWidth);
 	}
 	ctx.stroke();
 }
 
 function resetWall(wall) {
-	for (var i = 0; i < wall.length; i++)
-		for (var j = 0; j < wall[0].length; j++)
+	for (var i = 0; i < CANVAS_HEIGHT; i++)
+		for (var j = 0; j < CANVAS_WIDTH; j++)
 			wall[i][j] = 0;
 	console.log(wall);
 }
@@ -183,10 +185,10 @@ function bfs(sX, sY, eX, eY, ctx, wall) {
 	let dir = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 	let prevPts = [];
 	let isVisited = new Array(wall.length);
-	for (var i = 0; i < isVisited.length; i++)
-		isVisited[i] = new Array(wall[0].length);
-	for (var i = 0; i < isVisited.length; i++)
-		for (var j = 0; j < isVisited[0].length; j++)
+	for (var i = 0; i < CANVAS_HEIGHT; i++)
+		isVisited[i] = new Array(CANVAS_WIDTH);
+	for (var i = 0; i < CANVAS_HEIGHT; i++)
+		for (var j = 0; j < CANVAS_WIDTH; j++)
 			isVisited[i][j] = 0;
 	prevPts.push([sX, sY]);
 	q.push([prevPts, Number(sX), Number(sY)]);
@@ -205,15 +207,20 @@ function bfs(sX, sY, eX, eY, ctx, wall) {
 			break;
 		}
 		isVisited[curY][curX] = 1;
-		for (let index= 0; index< 4; index ++) {
+		makePixel(curX, curY, ctx, 'grey');
+		for (let index = 0; index < 4; index++) {
 			let d = dir[index];
 			let newX = Number(Number(curX) + Number(d[0]));
 			let newY = Number(Number(curY) + Number(d[1]));
 			if (newX < 0 || newY < 0 || newX >= wall[0].length || newY >= wall.length || wall[newY][newX] === 1)
 				continue;
-			var newArr=prevPts;
-			newArr.push([newX, newY]);
-			q.push([newArr, newX, newY]);
+			numbersCopy = [];
+			var pointsAmt = prevPts.length;
+			for (i = 0; i < pointsAmt; i++) {
+				numbersCopy[i] = prevPts[i];
+			}
+			numbersCopy.push([newX, newY]);
+			q.push([numbersCopy, newX, newY]);
 		}
 	}
 }
@@ -221,8 +228,9 @@ function bfs(sX, sY, eX, eY, ctx, wall) {
 function displayPath(points, ctx) {
 	console.log("reached! printing the path:");
 	console.log(points);
-	for (let index= 0; index< points.length; index ++) {
+	const numberOfPoints = points.length;
+	for (let index = 0; index < numberOfPoints; index++) {
 		let p = points[index];
-		makePixel(p[0], p[1], ctx, 'blue');
+		makePixel(p[0], p[1], ctx, 'violet');
 	}
 }

@@ -3,7 +3,7 @@
 	border: 1px solid black;
 	display: block;
 }
-#startButton{
+/* #startButton{
 	display: inline;
 	width: 100px;
 	height: 100%;
@@ -17,17 +17,19 @@
 	display: inline;
 	width: 100px;
 	height: 100%;
-}
-#clearButton{
+} */
+#buttons > button{
 	display: inline;
 	width: 100px;
-	height: 100%;
+	height: 70%;
+	margin-top: 12px;
+	/* margin-bottom: 5%; */
 }
-#buttons{
+#buttons {
 	width:auto;
-	height: 50px;
+	height: 80px;
 	border: 1px solid grey;
 }
 h1{
-	text-align: center;
+	text-align: left;
 }
