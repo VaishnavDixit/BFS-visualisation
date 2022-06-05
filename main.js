@@ -8,8 +8,8 @@ class Queue {
 	constructor() {
 		this.items = [];
 	}
-	push(arg) {
-		this.items.push([arg[0], arg[1], arg[2]]);
+	push(members) {
+		this.items.push([members[0], members[1], members[2]]);
 	}
 	pop() {
 		if (this.empty())
@@ -22,7 +22,7 @@ class Queue {
 		return [this.items[0][0], this.items[0][1], this.items[0][2]];
 	}
 	empty() {
-		return this.items.length == 0;
+		return this.items.length === 0;
 	}
 };
 
@@ -154,10 +154,9 @@ function makePixel(x, y, ctx, color, gap = Math.floor(pixelWidth / 15)) {
 	ctx.fillRect(x, y, pixelWidth - (gap * 2), pixelWidth - (gap * 2));
 }
 
-function makeGrid(ctx) {
+function makeGrid(ctx) { //pixelated grid
 	ctx.strokeStyle = `#47474786`;
 	ctx.lineWidth = 2;
-
 	for (var i = 1; i <= CANVAS_WIDTH - 1; i++) {
 		for (var j = 1; j <= CANVAS_HEIGHT - 1; j++) {
 			ctx.moveTo(i * pixelWidth, j * pixelWidth);
@@ -165,15 +164,6 @@ function makeGrid(ctx) {
 		}
 	}
 	ctx.stroke();
-	// for (var i = 1; i <= CANVAS_WIDTH - 1; i++) {
-	// 	ctx.moveTo(i * pixelWidth, 0);
-	// 	ctx.lineTo(i * pixelWidth, CANVAS_HEIGHT * pixelWidth);
-	// }
-	// for (var i = 1; i <= CANVAS_HEIGHT - 1; i++) {
-	// 	ctx.moveTo(0, i * pixelWidth);
-	// 	ctx.lineTo(CANVAS_WIDTH * pixelWidth, i * pixelWidth);
-	// }
-
 }
 
 function resetWall(wall) {
@@ -185,7 +175,7 @@ function resetWall(wall) {
 function bfs(sX, sY, eX, eY, ctx, wall, addDelay) {
 	console.log("inside bfs function:");
 	let q = new Queue();
-	let dir = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+	let dir = [[1, 0], [0, 1], [-1, 0], [0, -1]];
 	let prevPts = [];
 	let isVisited = new Array(wall.length);
 	for (var i = 0; i < CANVAS_HEIGHT; i++)
@@ -212,12 +202,12 @@ function bfs(sX, sY, eX, eY, ctx, wall, addDelay) {
 			break;
 		}
 		isVisited[curY][curX] = 1;
-		makePixel(curX, curY, ctx, 'rgba(143, 143, 143, 0.219)');
+		makePixel(curX, curY, ctx, '#8585856b',0);
 		let dirLen = dir.length;
 		for (let index = 0; index < dirLen; index++) {
 			let d = dir[index];
-			let newX = Number(Number(curX) + Number(d[0]));
-			let newY = Number(Number(curY) + Number(d[1]));
+			let newX = Number(curX) + Number(d[0]);
+			let newY = Number(curY) + Number(d[1]);
 			if (newX < 0 || newY < 0 || newX >= wall[0].length || newY >= wall.length || wall[newY][newX] === 1)
 				continue;
 			numbersCopy = [];
@@ -244,6 +234,6 @@ function displayPath(sX, sY, eX, eY, points, ctx) {
 		let p = points[index];
 		if ((p[0] === sX && p[1] === sY) || (p[0] === eX && p[1] === eY))
 			continue;
-		makePixel(p[0], p[1], ctx, 'violet');
+		makePixel(p[0], p[1], ctx, 'green',5);
 	}
 }
