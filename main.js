@@ -1,7 +1,7 @@
 /** @type {CanvasRenderingContext2D} */
-const CANVAS_WIDTH = 100;
-const CANVAS_HEIGHT = 100;
-const pixelWidth = 7;
+let CANVAS_WIDTH = 35;
+let CANVAS_HEIGHT = 20;
+const pixelWidth = 20;
 
 class Queue {
 	// Array is used to implement a Queue
@@ -34,24 +34,17 @@ $(document).ready(function () {
 	makeGrid(ctx);
 	let startX = -1, startY = -1, endX = -1, endY = -1;
 	let wall = new Array(CANVAS_HEIGHT);
-
 	for (var i = 0; i < CANVAS_HEIGHT; i++)
 		wall[i] = new Array(CANVAS_WIDTH);
 	resetWall(wall);
 	console.log(wall);
-	let mode = 0;
-	/*
-	mode = 0 -> nothing
-	mode = 1 -> start 
-	mode = 2 -> end
-	mode = 3 -> wall 
-	*/
+	let mode = 0;//0> none 1>start  2>end  3>wall
 	var isStartPlaced = false;
 	var isEndPlaced = false;
-	var startColor = "yellow";
-	var endColor = "orange";
-	var wallColor = "black";
 	var isDrawing = false;
+	var startColor = '#ffb703';
+	var endColor = "#af5811";
+	var wallColor = "#0e1a2e";
 	$('#startButton').click(() => {
 		if (!isStartPlaced)
 			mode = 1;
@@ -132,7 +125,7 @@ $(document).ready(function () {
 			isEndPlaced = false;
 		}
 		wall[y][x] = 1;
-		makePixel(x, y, ctx, 'black');
+		makePixel(x, y, ctx, wallColor);
 	});
 	canvas.addEventListener('mouseup', (e) => {
 		console.log(wall);
@@ -142,45 +135,55 @@ $(document).ready(function () {
 	});
 	$('#startBFS').click(() => {
 		console.log("start bfs");
-		bfs(startX, startY, endX, endY, ctx, wall);
+		bfs(startX, startY, endX, endY, ctx, wall, addDelay);
 	});
 })
 
-function makePixel(x, y, ctx, color) {
+function makePixel(x, y, ctx, color, gap = Math.floor(pixelWidth / 15)) {
+	try {
+		if (gap >= pixelWidth) throw "gap > pixelWidth";
+	} catch (err) {
+		console.log("err->" + err);
+		return;
+	}
 	x *= pixelWidth;
+	x += gap;
 	y *= pixelWidth;
+	y += gap;
 	ctx.fillStyle = color;
-	ctx.fillRect(x, y, pixelWidth, pixelWidth);
+	ctx.fillRect(x, y, pixelWidth - (gap * 2), pixelWidth - (gap * 2));
 }
 
 function makeGrid(ctx) {
-	ctx.strokeStyle = 'light grey';
-	ctx.lineWidth = 0.5;
+	ctx.strokeStyle = `#47474786`;
+	ctx.lineWidth = 2;
+
 	for (var i = 1; i <= CANVAS_WIDTH - 1; i++) {
-		ctx.moveTo(i * pixelWidth, 0);
-		ctx.lineTo(i * pixelWidth, CANVAS_HEIGHT * pixelWidth);
-	}
-	for (var i = 1; i <= CANVAS_HEIGHT - 1; i++) {
-		ctx.moveTo(0, i * pixelWidth);
-		ctx.lineTo(CANVAS_WIDTH * pixelWidth, i * pixelWidth);
+		for (var j = 1; j <= CANVAS_HEIGHT - 1; j++) {
+			ctx.moveTo(i * pixelWidth, j * pixelWidth);
+			ctx.lineTo(i * pixelWidth + 1, j * pixelWidth + 1);
+		}
 	}
 	ctx.stroke();
+	// for (var i = 1; i <= CANVAS_WIDTH - 1; i++) {
+	// 	ctx.moveTo(i * pixelWidth, 0);
+	// 	ctx.lineTo(i * pixelWidth, CANVAS_HEIGHT * pixelWidth);
+	// }
+	// for (var i = 1; i <= CANVAS_HEIGHT - 1; i++) {
+	// 	ctx.moveTo(0, i * pixelWidth);
+	// 	ctx.lineTo(CANVAS_WIDTH * pixelWidth, i * pixelWidth);
+	// }
+
 }
 
 function resetWall(wall) {
 	for (var i = 0; i < CANVAS_HEIGHT; i++)
 		for (var j = 0; j < CANVAS_WIDTH; j++)
 			wall[i][j] = 0;
-	console.log(wall);
 }
 
-function bfs(sX, sY, eX, eY, ctx, wall) {
-	console.log("inside bfs func:");
-	console.table(wall);
-	console.log(sX);
-	console.log(sY);
-	console.log(eX);
-	console.log(eY);
+function bfs(sX, sY, eX, eY, ctx, wall, addDelay) {
+	console.log("inside bfs function:");
 	let q = new Queue();
 	let dir = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 	let prevPts = [];
@@ -194,6 +197,9 @@ function bfs(sX, sY, eX, eY, ctx, wall) {
 	q.push([prevPts, Number(sX), Number(sY)]);
 	console.log(q.front());
 	while (!q.empty()) {
+		console.log('new iteration before delay');
+		addDelay();
+		console.log('new iteration after delay');
 		var current = q.front();
 		prevPts = current[0];
 		let curX = Number(current[1]);
@@ -201,14 +207,14 @@ function bfs(sX, sY, eX, eY, ctx, wall) {
 		q.pop();
 		if (isVisited[curY][curX] || wall[curY][curX] === 1)
 			continue;
-		console.log(` currently at ${curY}, ${curX}`);
 		if (curX === eX && curY === eY) {
-			displayPath(prevPts, ctx);
+			displayPath(sX, sY, eX, eY, prevPts, ctx);
 			break;
 		}
 		isVisited[curY][curX] = 1;
-		makePixel(curX, curY, ctx, 'grey');
-		for (let index = 0; index < 4; index++) {
+		makePixel(curX, curY, ctx, 'rgba(143, 143, 143, 0.219)');
+		let dirLen = dir.length;
+		for (let index = 0; index < dirLen; index++) {
 			let d = dir[index];
 			let newX = Number(Number(curX) + Number(d[0]));
 			let newY = Number(Number(curY) + Number(d[1]));
@@ -216,21 +222,28 @@ function bfs(sX, sY, eX, eY, ctx, wall) {
 				continue;
 			numbersCopy = [];
 			var pointsAmt = prevPts.length;
-			for (i = 0; i < pointsAmt; i++) {
+			for (i = 0; i < pointsAmt; i++)
 				numbersCopy[i] = prevPts[i];
-			}
 			numbersCopy.push([newX, newY]);
 			q.push([numbersCopy, newX, newY]);
 		}
 	}
 }
 
-function displayPath(points, ctx) {
+function addDelay() {
+	setTimeout(() => {
+		console.log("bored:((((");
+	}, 50);
+}
+
+function displayPath(sX, sY, eX, eY, points, ctx) {
 	console.log("reached! printing the path:");
 	console.log(points);
 	const numberOfPoints = points.length;
 	for (let index = 0; index < numberOfPoints; index++) {
 		let p = points[index];
+		if ((p[0] === sX && p[1] === sY) || (p[0] === eX && p[1] === eY))
+			continue;
 		makePixel(p[0], p[1], ctx, 'violet');
 	}
 }

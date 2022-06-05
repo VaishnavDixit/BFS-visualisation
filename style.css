@@ -1,35 +1,77 @@
-#myCanvas{
-	margin: auto;
+:root {
+	--pathColor: #3d5a80;
+	--wallColor: #587cb9;
+	--startColor: #d8b96b;
+	--endColor: #c28451;
+	--gridColor: #8585856b;
+}
+
+* {
+	font-family: monospace;
+}
+
+#myCanvas {
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 30px;
 	border: 1px solid black;
 	display: block;
 }
-/* #startButton{
-	display: inline;
-	width: 100px;
-	height: 100%;
-}
-#endButton{
-	display: inline;
-	width: 100px;
-	height: 100%;
-}
-#wallButton{
-	display: inline;
-	width: 100px;
-	height: 100%;
-} */
-#buttons > button{
-	display: inline;
-	width: 100px;
+
+#buttons>button {
+	width: 130px;
 	height: 70%;
-	margin-top: 12px;
-	/* margin-bottom: 5%; */
+	color: black;
+	margin-left: 20px;
+	margin-right: 20px;
+	font-size: 18px;
+	font-weight: bold;
+	border-radius: 15px;
+	border: 1px solid black;
+	transition: width 0.2s ease, height 0.2s ease, border 0s ease;
 }
+
+#buttons>button:hover {
+	width: 140px;
+	height: 74%;
+	border: 2px solid black;
+}
+
+#startButton {
+	background-color: var(--startColor);
+}
+
+#endButton {
+	background-color: var(--endColor);
+}
+
+#wallButton {
+	background-color: var(--wallColor);
+}
+
+#clearButton {
+	background-color: white;
+}
+
+#startBFS {
+	background-color: rgb(54, 190, 42);
+	
+}
+
 #buttons {
-	width:auto;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
 	height: 80px;
-	border: 1px solid grey;
+	/* background-color: #47474786; */
 }
-h1{
-	text-align: left;
+
+h1 {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 60px;
+	margin: 0;
 }
