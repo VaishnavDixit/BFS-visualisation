@@ -1,7 +1,7 @@
 /** @type {CanvasRenderingContext2D} */
-let CANVAS_WIDTH = 35;
-let CANVAS_HEIGHT = 20;
-const pixelWidth = 20;
+let CANVAS_WIDTH = 70;
+let CANVAS_HEIGHT = 40;
+const pixelWidth = 15;
 
 class Queue {
 	// Array is used to implement a Queue
@@ -37,14 +37,16 @@ $(document).ready(function () {
 	for (var i = 0; i < CANVAS_HEIGHT; i++)
 		wall[i] = new Array(CANVAS_WIDTH);
 	resetWall(wall);
-	console.log(wall);
 	let mode = 0;//0> none 1>start  2>end  3>wall
 	var isStartPlaced = false;
+	var isStartDrag = false;
+	//var isEndDrag = false;
 	var isEndPlaced = false;
 	var isDrawing = false;
 	var startColor = '#ffb703';
 	var endColor = "#af5811";
 	var wallColor = "#0e1a2e";
+	var isPathPossible = false;
 	$('#startButton').click(() => {
 		if (!isStartPlaced)
 			mode = 1;
@@ -57,19 +59,20 @@ $(document).ready(function () {
 		mode = 3;
 	});
 	$('#clearButton').click(() => {//todo
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		ctx.clearRect(0, 0, (CANVAS_WIDTH * pixelWidth), (CANVAS_HEIGHT * pixelWidth));
+		makeGrid(ctx);
 		ctx.beginPath();
 		resetWall(wall);
 		startX = -1, startY = -1, endX = -1, endY = -1;
 		mode = 0;
 		isStartPlaced = false;
 		isEndPlaced = false;
-		makeGrid(ctx);
+		isStartDrag = false;
 	});
 	var isDrawing = false;
 	canvas.addEventListener('mousedown', (e) => {
-		if (mode === 0)
-			return;
+		// if (mode === 0)
+		// 	return;
 		var rect = canvas.getBoundingClientRect();
 		let x = e.clientX - rect.left;
 		let y = e.clientY - rect.top;
@@ -77,7 +80,12 @@ $(document).ready(function () {
 		x = (x - (x % pixelWidth)) / pixelWidth;
 		y = (y - (y % pixelWidth)) / pixelWidth;
 		console.log(`x: ${x} y: ${y}`);
-		if (mode === 1) {
+		
+		if (isStartPlaced && startX === x && startY === y) {
+			isStartDrag = true;
+			console.log('drag mode');
+		}
+		else if (mode === 1) {
 			if (wall[y][x] === 1 || (endX === x && endY === y))
 				return;
 			startX = x;
@@ -106,40 +114,67 @@ $(document).ready(function () {
 			isDrawing = true;
 		}
 		console.log("mouse clicked");
-		makePixel(x, y, ctx, color);
+		if(!isStartDrag)
+			makePixel(x, y, ctx, color);
 	});
 	canvas.addEventListener('mousemove', (e) => {
-		if (mode != 3 || !isDrawing)
-			return;
 		var rect = canvas.getBoundingClientRect();
 		let x = e.clientX - rect.left;
 		let y = e.clientY - rect.top;
 		x = (x - (x % pixelWidth)) / pixelWidth;
 		y = (y - (y % pixelWidth)) / pixelWidth;
+		if (isStartPlaced && isStartDrag) {
+			if (!(startX == x && startY == y)) {
+				clearPixel(startX, startY, ctx, 1);
+				ctx.lineWidth = 2;
+				ctx.moveTo(startX * pixelWidth, startY * pixelWidth);
+				ctx.lineTo(startX * pixelWidth + 1, startY * pixelWidth + 1);
+				makePixel(x, y, ctx, startColor);
+				startX = x;
+				startY = y;
+				if(isPathPossible){
+					clearPath()
+				}
+			}
+			// ctx.stroke();
+		}
+		if (mode != 3 || !isDrawing)
+			return;
 		if (wall[y][x] === 1)
 			return;
-		if (startX === x && startY === y) {
+		if (startX === x && startY === y)
 			isStartPlaced = false;
-		}
-		if (endX === x && endY === y) {
+		if (endX === x && endY === y)
 			isEndPlaced = false;
-		}
 		wall[y][x] = 1;
 		makePixel(x, y, ctx, wallColor);
 	});
 	canvas.addEventListener('mouseup', (e) => {
-		console.log(wall);
+		if (isStartDrag === true)
+			isStartDrag = false;
 		if (mode === 0)
 			return;
 		isDrawing = false;
 	});
 	$('#startBFS').click(() => {
 		console.log("start bfs");
-		bfs(startX, startY, endX, endY, ctx, wall, addDelay);
+		isPathPossible = bfs(startX, startY, endX, endY, ctx, wall);
 	});
 })
 
-function makePixel(x, y, ctx, color, gap = Math.floor(pixelWidth / 15)) {
+function clearStart(wall, ctx, endX, endY) {
+	ctx.clearRect(0, 0, CANVAS_WIDTH * pixelWidth, CANVAS_HEIGHT * pixelWidth);
+	for (var i = 0; i < CANVAS_HEIGHT; i++)
+		for (var j = 0; j < CANVAS_WIDTH; j++) {
+			if (wall[i][j] === 1)
+				makePixel(i, j, ctx, wallColor);
+			else if (i === endX && j === endY)
+				makePixel(i, j, ctx, endColor);
+		}
+	makeGrid(ctx);
+}
+
+function makePixel(x, y, ctx, color, gap = 1) {
 	try {
 		if (gap >= pixelWidth) throw "gap > pixelWidth";
 	} catch (err) {
@@ -154,16 +189,17 @@ function makePixel(x, y, ctx, color, gap = Math.floor(pixelWidth / 15)) {
 	ctx.fillRect(x, y, pixelWidth - (gap * 2), pixelWidth - (gap * 2));
 }
 
+function clearPixel(x, y, ctx, gap = 1) {
+	x *= pixelWidth;
+	y *= pixelWidth;
+	ctx.clearRect(Number(x) + gap, Number(y) + gap, Number(pixelWidth) - (gap * 2), Number(pixelWidth) - (gap * 2));
+}
+
 function makeGrid(ctx) { //pixelated grid
-	ctx.strokeStyle = `#47474786`;
-	ctx.lineWidth = 2;
-	for (var i = 1; i <= CANVAS_WIDTH - 1; i++) {
-		for (var j = 1; j <= CANVAS_HEIGHT - 1; j++) {
-			ctx.moveTo(i * pixelWidth, j * pixelWidth);
-			ctx.lineTo(i * pixelWidth + 1, j * pixelWidth + 1);
-		}
-	}
-	ctx.stroke();
+	ctx.fillStyle="#47474781";
+	for (var i = 1; i <= CANVAS_WIDTH - 1; i++) 
+		for (var j = 1; j <= CANVAS_HEIGHT - 1; j++) 
+			ctx.fillRect(i * pixelWidth, j * pixelWidth, 2, 2);
 }
 
 function resetWall(wall) {
@@ -188,7 +224,6 @@ function bfs(sX, sY, eX, eY, ctx, wall, addDelay) {
 	console.log(q.front());
 	while (!q.empty()) {
 		console.log('new iteration before delay');
-		addDelay();
 		console.log('new iteration after delay');
 		var current = q.front();
 		prevPts = current[0];
@@ -199,10 +234,10 @@ function bfs(sX, sY, eX, eY, ctx, wall, addDelay) {
 			continue;
 		if (curX === eX && curY === eY) {
 			displayPath(sX, sY, eX, eY, prevPts, ctx);
-			break;
+			return true;
 		}
 		isVisited[curY][curX] = 1;
-		makePixel(curX, curY, ctx, '#8585856b',0);
+		//makePixel(curX, curY, ctx, '#8585856b',0);
 		let dirLen = dir.length;
 		for (let index = 0; index < dirLen; index++) {
 			let d = dir[index];
@@ -218,12 +253,7 @@ function bfs(sX, sY, eX, eY, ctx, wall, addDelay) {
 			q.push([numbersCopy, newX, newY]);
 		}
 	}
-}
-
-function addDelay() {
-	setTimeout(() => {
-		console.log("bored:((((");
-	}, 50);
+	return false;
 }
 
 function displayPath(sX, sY, eX, eY, points, ctx) {
@@ -234,6 +264,6 @@ function displayPath(sX, sY, eX, eY, points, ctx) {
 		let p = points[index];
 		if ((p[0] === sX && p[1] === sY) || (p[0] === eX && p[1] === eY))
 			continue;
-		makePixel(p[0], p[1], ctx, 'green',5);
+		makePixel(p[0], p[1], ctx, 'green', 0);
 	}
 }
