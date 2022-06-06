@@ -1,5 +1,5 @@
 /** @type {CanvasRenderingContext2D} */
-let CANVAS_WIDTH = 70;
+let CANVAS_WIDTH = 40;
 let CANVAS_HEIGHT = 40;
 const pixelWidth = 15;
 
@@ -46,7 +46,7 @@ $(document).ready(function () {
 	var startColor = '#ffb703';
 	var endColor = "#af5811";
 	var wallColor = "#0e1a2e";
-	var isPathPossible = false;
+	var path = [];
 	$('#startButton').click(() => {
 		if (!isStartPlaced)
 			mode = 1;
@@ -57,6 +57,11 @@ $(document).ready(function () {
 	});
 	$('#wallButton').click(() => {
 		mode = 3;
+	});
+	$('#startBFS').click(() => {
+		mode = 0;
+		console.log("start bfs");
+		path = bfs(startX, startY, endX, endY, ctx, wall, path);
 	});
 	$('#clearButton').click(() => {//todo
 		ctx.clearRect(0, 0, (CANVAS_WIDTH * pixelWidth), (CANVAS_HEIGHT * pixelWidth));
@@ -80,7 +85,7 @@ $(document).ready(function () {
 		x = (x - (x % pixelWidth)) / pixelWidth;
 		y = (y - (y % pixelWidth)) / pixelWidth;
 		console.log(`x: ${x} y: ${y}`);
-		
+
 		if (isStartPlaced && startX === x && startY === y) {
 			isStartDrag = true;
 			console.log('drag mode');
@@ -114,7 +119,7 @@ $(document).ready(function () {
 			isDrawing = true;
 		}
 		console.log("mouse clicked");
-		if(!isStartDrag)
+		if (!isStartDrag)
 			makePixel(x, y, ctx, color);
 	});
 	canvas.addEventListener('mousemove', (e) => {
@@ -124,19 +129,20 @@ $(document).ready(function () {
 		x = (x - (x % pixelWidth)) / pixelWidth;
 		y = (y - (y % pixelWidth)) / pixelWidth;
 		if (isStartPlaced && isStartDrag) {
+			if (wall[x][y] === 1)
+				return;
 			if (!(startX == x && startY == y)) {
 				clearPixel(startX, startY, ctx, 1);
+				clearPath(path, ctx, startX, startY, endX, endY);
 				ctx.lineWidth = 2;
 				ctx.moveTo(startX * pixelWidth, startY * pixelWidth);
-				ctx.lineTo(startX * pixelWidth + 1, startY * pixelWidth + 1);
+				ctx.lineTo(startX * pixelWidth + 1, startY * pixelWidth + 1);//making the removed points
 				makePixel(x, y, ctx, startColor);
 				startX = x;
 				startY = y;
-				if(isPathPossible){
-					clearPath()
-				}
+				path = bfs(startX, startY, endX, endY, ctx, wall, path);
 			}
-			// ctx.stroke();
+			return;
 		}
 		if (mode != 3 || !isDrawing)
 			return;
@@ -156,11 +162,17 @@ $(document).ready(function () {
 			return;
 		isDrawing = false;
 	});
-	$('#startBFS').click(() => {
-		console.log("start bfs");
-		isPathPossible = bfs(startX, startY, endX, endY, ctx, wall);
-	});
 })
+
+function clearPath(path, ctx, sX, sY, eX, eY) {
+	console.log('clearing path: lenth=' + path.length);
+	let countPoints = path.length;
+	for (let i = 0; i < countPoints; i++) {
+		if ((path[i][0] == sX && path[i][1] == sY) || (path[i][0] == eX && path[i][1] == eY))
+			continue;
+		clearPixel(path[i][0], path[i][1], ctx);
+	}
+}
 
 function clearStart(wall, ctx, endX, endY) {
 	ctx.clearRect(0, 0, CANVAS_WIDTH * pixelWidth, CANVAS_HEIGHT * pixelWidth);
@@ -196,10 +208,11 @@ function clearPixel(x, y, ctx, gap = 1) {
 }
 
 function makeGrid(ctx) { //pixelated grid
-	ctx.fillStyle="#47474781";
-	for (var i = 1; i <= CANVAS_WIDTH - 1; i++) 
-		for (var j = 1; j <= CANVAS_HEIGHT - 1; j++) 
+	ctx.fillStyle = "#47474781";
+	for (var i = 1; i <= CANVAS_WIDTH - 1; i++)
+		for (var j = 1; j <= CANVAS_HEIGHT - 1; j++)
 			ctx.fillRect(i * pixelWidth, j * pixelWidth, 2, 2);
+
 }
 
 function resetWall(wall) {
@@ -209,7 +222,7 @@ function resetWall(wall) {
 }
 
 function bfs(sX, sY, eX, eY, ctx, wall, addDelay) {
-	console.log("inside bfs function:");
+	//console.log("inside bfs function:");
 	let q = new Queue();
 	let dir = [[1, 0], [0, 1], [-1, 0], [0, -1]];
 	let prevPts = [];
@@ -223,8 +236,7 @@ function bfs(sX, sY, eX, eY, ctx, wall, addDelay) {
 	q.push([prevPts, Number(sX), Number(sY)]);
 	console.log(q.front());
 	while (!q.empty()) {
-		console.log('new iteration before delay');
-		console.log('new iteration after delay');
+		//onsole.log('new iteration after delay');
 		var current = q.front();
 		prevPts = current[0];
 		let curX = Number(current[1]);
@@ -234,7 +246,7 @@ function bfs(sX, sY, eX, eY, ctx, wall, addDelay) {
 			continue;
 		if (curX === eX && curY === eY) {
 			displayPath(sX, sY, eX, eY, prevPts, ctx);
-			return true;
+			return prevPts;
 		}
 		isVisited[curY][curX] = 1;
 		//makePixel(curX, curY, ctx, '#8585856b',0);
@@ -253,7 +265,7 @@ function bfs(sX, sY, eX, eY, ctx, wall, addDelay) {
 			q.push([numbersCopy, newX, newY]);
 		}
 	}
-	return false;
+	return [];
 }
 
 function displayPath(sX, sY, eX, eY, points, ctx) {
@@ -264,6 +276,6 @@ function displayPath(sX, sY, eX, eY, points, ctx) {
 		let p = points[index];
 		if ((p[0] === sX && p[1] === sY) || (p[0] === eX && p[1] === eY))
 			continue;
-		makePixel(p[0], p[1], ctx, 'green', 0);
+		makePixel(p[0], p[1], ctx, 'green');
 	}
 }

@@ -28,12 +28,10 @@
 	font-weight: bold;
 	border-radius: 15px;
 	border: 1px solid black;
-	transition: width 0.2s ease, height 0.2s ease, border 0s ease;
+	transition: border 0s ease;
 }
 
 #buttons>button:hover {
-	width: 140px;
-	height: 74%;
 	border: 2px solid black;
 }
 
