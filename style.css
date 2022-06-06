@@ -35,14 +35,6 @@
 	border: 2px solid black;
 }
 
-#startButton {
-	background-color: var(--startColor);
-}
-
-#endButton {
-	background-color: var(--endColor);
-}
-
 #wallButton {
 	background-color: var(--wallColor);
 }
@@ -53,7 +45,6 @@
 
 #startBFS {
 	background-color: rgb(54, 190, 42);
-	
 }
 
 #buttons {
