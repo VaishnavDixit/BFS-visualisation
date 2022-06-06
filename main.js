@@ -1,7 +1,7 @@
 /** @type {CanvasRenderingContext2D} */
-let CANVAS_WIDTH = 100; //>=10
-let CANVAS_HEIGHT = 50;  //>=10
-const pixelWidth = 15;
+const CANVAS_WIDTH = 100; //>=10
+const CANVAS_HEIGHT = 50;  //>=10
+const PIXEL_WIDTH = 15;
 
 class Queue {
 	// Array is used to implement a Queue
@@ -28,8 +28,8 @@ class Queue {
 
 $(document).ready(function () {
 	canvas = document.querySelector("#myCanvas");
-	canvas.height = CANVAS_HEIGHT * pixelWidth;
-	canvas.width = CANVAS_WIDTH * pixelWidth;
+	canvas.height = CANVAS_HEIGHT * PIXEL_WIDTH;
+	canvas.width = CANVAS_WIDTH * PIXEL_WIDTH;
 	var ctx = canvas.getContext("2d");
 	makeGrid(ctx);
 	let startX = 10, startY = 10, endX = CANVAS_WIDTH - 10, endY = CANVAS_HEIGHT - 10;
@@ -48,14 +48,6 @@ $(document).ready(function () {
 	makePixel(endX, endY, ctx, endColor);
 	makePixel(startX, startY, ctx, startColor);
 	var path = [];
-	// $('#startButton').click(() => {
-	// 	if (!isStartPlaced)
-	// 		mode = 1;
-	// });
-	// $('#endButton').click(() => {
-	// 	if (!isEndPlaced)
-	// 		mode = 2;
-	// });
 	$('#wallButton').click(() => {
 		mode = 3;
 	});
@@ -67,9 +59,8 @@ $(document).ready(function () {
 		path = bfs(startX, startY, endX, endY, ctx, wall, path);
 	});
 	$('#clearButton').click(() => {//todo
-		ctx.clearRect(0, 0, (CANVAS_WIDTH * pixelWidth), (CANVAS_HEIGHT * pixelWidth));
+		ctx.clearRect(0, 0, (CANVAS_WIDTH * PIXEL_WIDTH), (CANVAS_HEIGHT * PIXEL_WIDTH));
 		makeGrid(ctx);
-		//ctx.beginPath();
 		resetWall(wall);
 		startX = 10, startY = 10, endX = CANVAS_WIDTH - 10, endY = CANVAS_HEIGHT - 10;
 		makePixel(endX, endY, ctx, endColor);
@@ -81,15 +72,13 @@ $(document).ready(function () {
 	});
 	var isDrawing = false;
 	canvas.addEventListener('mousedown', (e) => {
-		// if (mode === 0)
-		// 	return;
 		console.log("mouse clicked");
 		var rect = canvas.getBoundingClientRect();
 		let x = e.clientX - rect.left;
 		let y = e.clientY - rect.top;
 		let color = '#aaaaaa';
-		x = (x - (x % pixelWidth)) / pixelWidth;
-		y = (y - (y % pixelWidth)) / pixelWidth;
+		x = (x - (x % PIXEL_WIDTH)) / PIXEL_WIDTH;
+		y = (y - (y % PIXEL_WIDTH)) / PIXEL_WIDTH;
 		console.log(`x: ${x} y: ${y}`);
 		if (startX === x && startY === y) {
 			isStartDrag = true;
@@ -132,14 +121,14 @@ $(document).ready(function () {
 		var rect = canvas.getBoundingClientRect();
 		let x = e.clientX - rect.left;
 		let y = e.clientY - rect.top;
-		x = (x - (x % pixelWidth)) / pixelWidth;
-		y = (y - (y % pixelWidth)) / pixelWidth;
+		x = (x - (x % PIXEL_WIDTH)) / PIXEL_WIDTH;
+		y = (y - (y % PIXEL_WIDTH)) / PIXEL_WIDTH;
 		if (wall[y][x] === 1) {
 			console.log("wall encountered");
 			return;
 		}
 		if (isStartDrag) {
-			if (wall[y][x] === 1)
+			if (wall[y][x] === 1 || endX === x && endY === y)
 				return;
 			else if (!(startX === x && startY === y)) {
 				clearPixel(startX, startY, ctx);
@@ -155,14 +144,14 @@ $(document).ready(function () {
 			return;
 		}
 		else if (isEndDrag) {
-			if (wall[y][x] === 1)
+			if (wall[y][x] === 1 || startX === x && startY === y)
 				return;
 			if (!(endX === x && endY === y)) {
 				clearPixel(endX, endY, ctx);
 				clearPath(path, ctx, startX, startY, endX, endY, wall, wallColor);
 				ctx.lineWidth = 2;
-				ctx.moveTo(endX * pixelWidth, endY * pixelWidth);
-				ctx.lineTo(endX * pixelWidth + 1, endY * pixelWidth + 1);//making the removed points
+				ctx.moveTo(endX * PIXEL_WIDTH, endY * PIXEL_WIDTH);
+				ctx.lineTo(endX * PIXEL_WIDTH + 1, endY * PIXEL_WIDTH + 1);//making the removed points
 				makePixel(x, y, ctx, endColor);
 				endX = x;
 				endY = y;
@@ -189,44 +178,44 @@ function clearPath(path, ctx, sX, sY, eX, eY, wall, wallColor) {
 	for (let i = 0; i < countPoints; i++) {
 		if ((path[i][0] == sX && path[i][1] == sY) || (path[i][0] == eX && path[i][1] == eY))
 			continue;
-		clearPixel(path[i][0], path[i][1], ctx);	
-		if(wall[path[i][1]][path[i][0]]===1)
+		clearPixel(path[i][0], path[i][1], ctx);
+		if (wall[path[i][1]][path[i][0]] === 1)
 			makePixel(path[i][0], path[i][1], ctx, wallColor);
 	}
 }
 
 function makePixel(x, y, ctx, color, gap = 1) {
 	try {
-		if (gap >= pixelWidth) throw "gap > pixelWidth";
+		if (gap >= PIXEL_WIDTH) throw "gap > pixelWidth";
 	} catch (err) {
 		console.log("err->" + err);
 		return;
 	}
-	x *= pixelWidth;
+	x *= PIXEL_WIDTH;
 	x += gap;
-	y *= pixelWidth;
+	y *= PIXEL_WIDTH;
 	y += gap;
 	ctx.fillStyle = color;
-	try{
-		if(pixelWidth - (gap * 3)<0)
-			throw("length <0");
-	}catch(err){
-		console.log("err"+err);
+	try {
+		if (PIXEL_WIDTH - (gap * 3) < 0)
+			throw ("length <0");
+	} catch (err) {
+		console.log("err" + err);
 	}
-	ctx.fillRect(x, y, pixelWidth - (gap * 1), pixelWidth - (gap * 1));
+	ctx.fillRect(x, y, PIXEL_WIDTH - (gap * 1), PIXEL_WIDTH - (gap * 1));
 }
 
 function clearPixel(x, y, ctx, gap = 1) {
-	x *= pixelWidth;
-	y *= pixelWidth;
-	ctx.clearRect(Number(x) + gap, Number(y) + gap, Number(pixelWidth) - (gap * 1), Number(pixelWidth) - (gap * 1));
+	x *= PIXEL_WIDTH;
+	y *= PIXEL_WIDTH;
+	ctx.clearRect(Number(x) + gap, Number(y) + gap, Number(PIXEL_WIDTH) - (gap * 1), Number(PIXEL_WIDTH) - (gap * 1));
 }
 
 function makeGrid(ctx) { //pixelated grid
 	ctx.fillStyle = "black";
 	for (var i = 1; i <= CANVAS_WIDTH - 1; i++)
 		for (var j = 1; j <= CANVAS_HEIGHT - 1; j++)
-			ctx.fillRect(i * pixelWidth, j * pixelWidth, 1, 1);
+			ctx.fillRect(i * PIXEL_WIDTH, j * PIXEL_WIDTH, 1, 1);
 }
 
 function resetWall(wall) {
