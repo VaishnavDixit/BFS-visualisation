@@ -1,5 +1,5 @@
 /** @type {CanvasRenderingContext2D} */
-const CANVAS_WIDTH = 100; //>=10
+const CANVAS_WIDTH = 50; //>=10
 const CANVAS_HEIGHT = 50;  //>=10
 const PIXEL_WIDTH = 15;
 
@@ -32,7 +32,8 @@ $(document).ready(function () {
 	canvas.width = CANVAS_WIDTH * PIXEL_WIDTH;
 	var ctx = canvas.getContext("2d");
 	makeGrid(ctx);
-	let startX = 10, startY = 10, endX = CANVAS_WIDTH - 10, endY = CANVAS_HEIGHT - 10;
+	startX = 10, startY = 10, endX = CANVAS_WIDTH - 30, endY = CANVAS_HEIGHT - 30;
+
 	let wall = new Array(CANVAS_HEIGHT);
 	for (var i = 0; i < CANVAS_HEIGHT; i++)
 		wall[i] = new Array(CANVAS_WIDTH);
@@ -49,20 +50,25 @@ $(document).ready(function () {
 	makePixel(startX, startY, ctx, startColor);
 	var path = [];
 	$('#wallButton').click(() => {
+		// if (toShowPath)
+		// 	return;
 		mode = 3;
 	});
 	$('#startBFS').click(() => {
 		mode = 0;
 		toShowPath = true;
 		console.log("start bfs");
-		clearPath(path, ctx, startX, startY, endX, endY, wall, wallColor);
+		clearAllGreys(ctx, startX, startY, endX, endY, wall);
+		//clearPath(path, ctx, startX, startY, endX, endY, wall, wallColor);
+		// if (toShowPath)
+		// 	clearbfs(startX, startY, endX, endY, ctx, wall, path);
 		path = bfs(startX, startY, endX, endY, ctx, wall, path);
 	});
 	$('#clearButton').click(() => {//todo
 		ctx.clearRect(0, 0, (CANVAS_WIDTH * PIXEL_WIDTH), (CANVAS_HEIGHT * PIXEL_WIDTH));
 		makeGrid(ctx);
 		resetWall(wall);
-		startX = 10, startY = 10, endX = CANVAS_WIDTH - 10, endY = CANVAS_HEIGHT - 10;
+		startX = 10, startY = 10, endX = CANVAS_WIDTH - 30, endY = CANVAS_HEIGHT - 30;
 		makePixel(endX, endY, ctx, endColor);
 		makePixel(startX, startY, ctx, startColor);
 		mode = 0;
@@ -133,7 +139,7 @@ $(document).ready(function () {
 			else if (!(startX === x && startY === y)) {
 				clearPixel(startX, startY, ctx);
 				clearPath(path, ctx, startX, startY, endX, endY, wall, wallColor);
-				//ctx.fillRect(startX * pixelWidth, startY * pixelWidth, 1, 1);
+				clearbfs(startX, startY, endX, endY, ctx, wall, path);
 				makePixel(x, y, ctx, startColor);
 				startX = x;
 				startY = y;
@@ -149,9 +155,10 @@ $(document).ready(function () {
 			if (!(endX === x && endY === y)) {
 				clearPixel(endX, endY, ctx);
 				clearPath(path, ctx, startX, startY, endX, endY, wall, wallColor);
-				ctx.lineWidth = 2;
-				ctx.moveTo(endX * PIXEL_WIDTH, endY * PIXEL_WIDTH);
-				ctx.lineTo(endX * PIXEL_WIDTH + 1, endY * PIXEL_WIDTH + 1);//making the removed points
+				clearbfs(startX, startY, endX, endY, ctx, wall, path);
+				// ctx.lineWidth = 2;
+				// ctx.moveTo(endX * PIXEL_WIDTH, endY * PIXEL_WIDTH);
+				// ctx.lineTo(endX * PIXEL_WIDTH + 1, endY * PIXEL_WIDTH + 1);//making the removed points
 				makePixel(x, y, ctx, endColor);
 				endX = x;
 				endY = y;
@@ -218,6 +225,15 @@ function makeGrid(ctx) { //pixelated grid
 			ctx.fillRect(i * PIXEL_WIDTH, j * PIXEL_WIDTH, 1, 1);
 }
 
+function clearAllGreys(ctx, sX, sY, eX, eY, wall, gap = 1) {
+	for (var i = 0; i < CANVAS_HEIGHT; i++)
+		for (var j = 0; j < CANVAS_WIDTH; j++) {
+			if ((j == sX && i == sY) || (j == eX && i == eY) || wall[i][j] === 1)
+				continue;
+			ctx.clearRect(Number(j*PIXEL_WIDTH) + gap, Number(i*PIXEL_WIDTH) + gap, Number(PIXEL_WIDTH) - (gap * 1), Number(PIXEL_WIDTH) - (gap * 1));
+		}
+}
+
 function resetWall(wall) {
 	for (var i = 0; i < CANVAS_HEIGHT; i++)
 		for (var j = 0; j < CANVAS_WIDTH; j++)
@@ -252,7 +268,9 @@ function bfs(sX, sY, eX, eY, ctx, wall) {
 			return prevPts;
 		}
 		isVisited[curY][curX] = 1;
-		//makePixel(curX, curY, ctx, '#8585856b',0);
+		if ((curX === sX && curY === sY)) { }
+		else
+			makePixel(curX, curY, ctx, '#A0A0A0');
 		let dirLen = dir.length;
 		for (let index = 0; index < dirLen; index++) {
 			let d = dir[index];
@@ -271,6 +289,51 @@ function bfs(sX, sY, eX, eY, ctx, wall) {
 	return [];
 }
 
+function clearbfs(sX, sY, eX, eY, ctx, wall) {
+	//console.log("inside bfs function:");
+	let q = new Queue();
+	let dir = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+	let prevPts = [];
+	let isVisited = new Array(wall.length);
+	for (var i = 0; i < CANVAS_HEIGHT; i++)
+		isVisited[i] = new Array(CANVAS_WIDTH);
+	for (var i = 0; i < CANVAS_HEIGHT; i++)
+		for (var j = 0; j < CANVAS_WIDTH; j++)
+			isVisited[i][j] = 0;
+	q.push([prevPts, Number(sX), Number(sY)]);
+	console.log(q.front());
+	while (!q.empty()) {
+		//onsole.log('new iteration after delay');
+		var current = q.front();
+		prevPts = current[0];
+		let curX = Number(current[1]);
+		let curY = Number(current[2]);
+		q.pop();
+		if (isVisited[curY][curX] || wall[curY][curX] === 1)
+			continue;
+		if (curX === eX && curY === eY) {
+			return;
+		}
+		isVisited[curY][curX] = 1;
+		if (!(sX === curX && sY === curY) && !(eX === curX && eY === curY))
+			clearPixel(curX, curY, ctx);
+		let dirLen = dir.length;
+		for (let index = 0; index < dirLen; index++) {
+			let d = dir[index];
+			let newX = Number(curX) + Number(d[0]);
+			let newY = Number(curY) + Number(d[1]);
+			if (newX < 0 || newY < 0 || newX >= wall[0].length || newY >= wall.length || wall[newY][newX] === 1)
+				continue;
+			numbersCopy = [];
+			// var pointsAmt = prevPts.length;
+			// for (i = 0; i < pointsAmt; i++)
+			// 	numbersCopy[i] = prevPts[i];
+			numbersCopy.push([newX, newY]);
+			q.push([numbersCopy, newX, newY]);
+		}
+	}
+	return;
+}
 function displayPath(sX, sY, eX, eY, points, ctx) {
 	console.log("reached! printing the path:");
 	console.log(points);
