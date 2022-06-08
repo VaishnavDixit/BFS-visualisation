@@ -26,13 +26,37 @@ class Queue {
 	}
 };
 
+class Stack {
+	// Array is used to implement a Queue
+	constructor() {
+		this.items = [];
+	}
+	push(members) {
+		this.items.push([members[0], members[1], members[2]]);
+	}
+	pop() {
+		if (this.empty())
+			return "Underflow";
+		return this.items.pop();
+	}
+	top() {
+		if (this.empty())
+			return "No elements in Stack";
+		return [this.items[0][0], this.items[0][1], this.items[0][2]];
+	}
+	empty() {
+		return this.items.length === 0;
+	}
+};
+
 $(document).ready(function () {
 	canvas = document.querySelector("#myCanvas");
 	canvas.height = CANVAS_HEIGHT * PIXEL_WIDTH;
 	canvas.width = CANVAS_WIDTH * PIXEL_WIDTH;
 	var ctx = canvas.getContext("2d");
 	makeGrid(ctx);
-	startX = 10, startY = 10, endX = CANVAS_WIDTH - 30, endY = CANVAS_HEIGHT - 30;
+	startX = 10, startY = CANVAS_HEIGHT/2, endX = CANVAS_WIDTH - 10, endY = CANVAS_HEIGHT/2;
+
 
 	let wall = new Array(CANVAS_HEIGHT);
 	for (var i = 0; i < CANVAS_HEIGHT; i++)
@@ -46,6 +70,7 @@ $(document).ready(function () {
 	var endColor = "#af5811";
 	var wallColor = "#0e1a2e";
 	var toShowPath = false;
+	let firstMove = true;
 	makePixel(endX, endY, ctx, endColor);
 	makePixel(startX, startY, ctx, startColor);
 	var path = [];
@@ -68,13 +93,16 @@ $(document).ready(function () {
 		ctx.clearRect(0, 0, (CANVAS_WIDTH * PIXEL_WIDTH), (CANVAS_HEIGHT * PIXEL_WIDTH));
 		makeGrid(ctx);
 		resetWall(wall);
-		startX = 10, startY = 10, endX = CANVAS_WIDTH - 30, endY = CANVAS_HEIGHT - 30;
+		startX = 10, startY = CANVAS_HEIGHT/2, endX = CANVAS_WIDTH - 10, endY = CANVAS_HEIGHT/2;
 		makePixel(endX, endY, ctx, endColor);
 		makePixel(startX, startY, ctx, startColor);
 		mode = 0;
 		isStartDrag = false;
 		isEndDrag = false;
 		toShowPath = false;
+	});
+	$('#clearWalls').click(() => {//todo
+		eraseWall(wall, ctx);
 	});
 	var isDrawing = false;
 	canvas.addEventListener('mousedown', (e) => {
@@ -139,7 +167,12 @@ $(document).ready(function () {
 			else if (!(startX === x && startY === y)) {
 				clearPixel(startX, startY, ctx);
 				clearPath(path, ctx, startX, startY, endX, endY, wall, wallColor);
-				clearbfs(startX, startY, endX, endY, ctx, wall, path);
+				if (firstMove === true) {
+					clearAllGreys(ctx, startX, startY, endX, endY, wall);
+					firstMove = false;
+				}
+				else
+					clearbfs(startX, startY, endX, endY, ctx, wall, path);
 				makePixel(x, y, ctx, startColor);
 				startX = x;
 				startY = y;
@@ -155,7 +188,12 @@ $(document).ready(function () {
 			if (!(endX === x && endY === y)) {
 				clearPixel(endX, endY, ctx);
 				clearPath(path, ctx, startX, startY, endX, endY, wall, wallColor);
-				clearbfs(startX, startY, endX, endY, ctx, wall, path);
+				if (firstMove === true) {
+					clearAllGreys(ctx, startX, startY, endX, endY, wall);
+					firstMove = false;
+				}
+				else
+					clearbfs(startX, startY, endX, endY, ctx, wall, path);
 				// ctx.lineWidth = 2;
 				// ctx.moveTo(endX * PIXEL_WIDTH, endY * PIXEL_WIDTH);
 				// ctx.lineTo(endX * PIXEL_WIDTH + 1, endY * PIXEL_WIDTH + 1);//making the removed points
@@ -176,6 +214,7 @@ $(document).ready(function () {
 		isStartDrag = false;
 		isEndDrag = false;
 		isDrawing = false;
+		firstMove = true;
 	});
 })
 
@@ -203,12 +242,6 @@ function makePixel(x, y, ctx, color, gap = 1) {
 	y *= PIXEL_WIDTH;
 	y += gap;
 	ctx.fillStyle = color;
-	try {
-		if (PIXEL_WIDTH - (gap * 3) < 0)
-			throw ("length <0");
-	} catch (err) {
-		console.log("err" + err);
-	}
 	ctx.fillRect(x, y, PIXEL_WIDTH - (gap * 1), PIXEL_WIDTH - (gap * 1));
 }
 
@@ -230,8 +263,17 @@ function clearAllGreys(ctx, sX, sY, eX, eY, wall, gap = 1) {
 		for (var j = 0; j < CANVAS_WIDTH; j++) {
 			if ((j == sX && i == sY) || (j == eX && i == eY) || wall[i][j] === 1)
 				continue;
-			ctx.clearRect(Number(j*PIXEL_WIDTH) + gap, Number(i*PIXEL_WIDTH) + gap, Number(PIXEL_WIDTH) - (gap * 1), Number(PIXEL_WIDTH) - (gap * 1));
+			ctx.clearRect(Number(j * PIXEL_WIDTH) + gap, Number(i * PIXEL_WIDTH) + gap, Number(PIXEL_WIDTH) - (gap * 1), Number(PIXEL_WIDTH) - (gap * 1));
 		}
+}
+
+function eraseWall(wall, ctx) {
+	for (var i = 0; i < CANVAS_HEIGHT; i++)
+		for (var j = 0; j < CANVAS_WIDTH; j++) 
+			if (wall[i][j] === 1) {
+				clearPixel(j, i,  ctx);
+				wall[i][j] = 0;
+			}
 }
 
 function resetWall(wall) {
@@ -269,8 +311,9 @@ function bfs(sX, sY, eX, eY, ctx, wall) {
 		}
 		isVisited[curY][curX] = 1;
 		if ((curX === sX && curY === sY)) { }
-		else
-			makePixel(curX, curY, ctx, '#A0A0A0');
+		else {
+			makePixel(curX, curY, ctx, '#a1a1a179');
+		}
 		let dirLen = dir.length;
 		for (let index = 0; index < dirLen; index++) {
 			let d = dir[index];
@@ -285,6 +328,7 @@ function bfs(sX, sY, eX, eY, ctx, wall) {
 			numbersCopy.push([newX, newY]);
 			q.push([numbersCopy, newX, newY]);
 		}
+
 	}
 	return [];
 }
@@ -334,6 +378,7 @@ function clearbfs(sX, sY, eX, eY, ctx, wall) {
 	}
 	return;
 }
+
 function displayPath(sX, sY, eX, eY, points, ctx) {
 	console.log("reached! printing the path:");
 	console.log(points);
@@ -344,4 +389,98 @@ function displayPath(sX, sY, eX, eY, points, ctx) {
 			continue;
 		makePixel(p[0], p[1], ctx, 'green');
 	}
+}
+
+function dfs(sX, sY, eX, eY, ctx, wall) {
+	console.log("inside dfs function:");
+	let s = new Stack();
+	let dir = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+	let prevPts = [];
+	let isVisited = new Array(wall.length);
+	for (var i = 0; i < CANVAS_HEIGHT; i++)
+		isVisited[i] = new Array(CANVAS_WIDTH);
+	for (var i = 0; i < CANVAS_HEIGHT; i++)
+		for (var j = 0; j < CANVAS_WIDTH; j++)
+			isVisited[i][j] = 0;
+	prevPts.push([sX, sY]);
+	s.push([prevPts, Number(sX), Number(sY)]);
+	console.log(s.top());
+	while (!s.empty()) {
+		//onsole.log('new iteration after delay');
+		var current = s.top();
+		prevPts = current[0];
+		let curX = Number(current[1]);
+		let curY = Number(current[2]);
+		s.pop();
+		if (isVisited[curY][curX] || wall[curY][curX] === 1)
+			continue;
+		if (curX === eX && curY === eY) {
+			displayPath(sX, sY, eX, eY, prevPts, ctx);
+			return prevPts;
+		}
+		isVisited[curY][curX] = 1;
+		if ((curX === sX && curY === sY));
+		else 
+			makePixel(curX, curY, ctx, '#a1a1a179');
+		let dirLen = dir.length;
+		for (let index = 0; index < dirLen; index++) {
+			let d = dir[index];
+			let newX = Number(curX) + Number(d[0]);
+			let newY = Number(curY) + Number(d[1]);
+			if (newX < 0 || newY < 0 || newX >= wall[0].length || newY >= wall.length || wall[newY][newX] === 1)
+				continue;
+			numbersCopy = [];
+			var pointsAmt = prevPts.length;
+			for (i = 0; i < pointsAmt; i++)
+				numbersCopy[i] = prevPts[i];
+			numbersCopy.push([newX, newY]);
+			s.push([numbersCopy, newX, newY]);
+		}
+	}
+	return [];
+}
+
+function cleardfs(sX, sY, eX, eY, ctx, wall) {
+	//console.log("inside bfs function:");
+	let s = new Stack();
+	let dir = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+	let prevPts = [];
+	let isVisited = new Array(wall.length);
+	for (var i = 0; i < CANVAS_HEIGHT; i++)
+		isVisited[i] = new Array(CANVAS_WIDTH);
+	for (var i = 0; i < CANVAS_HEIGHT; i++)
+		for (var j = 0; j < CANVAS_WIDTH; j++)
+			isVisited[i][j] = 0;
+	s.push([prevPts, Number(sX), Number(sY)]);
+	console.log(s.top());
+	while (!s.empty()) {
+		//onsole.log('new iteration after delay');
+		var current = s.top();
+		prevPts = current[0];
+		let curX = Number(current[1]);
+		let curY = Number(current[2]);
+		s.pop();
+		if (isVisited[curY][curX] || wall[curY][curX] === 1)
+			continue;
+		if (curX === eX && curY === eY) 
+			return;
+		isVisited[curY][curX] = 1;
+		if (!(sX === curX && sY === curY) && !(eX === curX && eY === curY))
+			clearPixel(curX, curY, ctx);
+		let dirLen = dir.length;
+		for (let index = 0; index < dirLen; index++) {
+			let d = dir[index];
+			let newX = Number(curX) + Number(d[0]);
+			let newY = Number(curY) + Number(d[1]);
+			if (newX < 0 || newY < 0 || newX >= wall[0].length || newY >= wall.length || wall[newY][newX] === 1)
+				continue;
+			numbersCopy = [];
+			// var pointsAmt = prevPts.length;
+			// for (i = 0; i < pointsAmt; i++)
+			// 	numbersCopy[i] = prevPts[i];
+			numbersCopy.push([newX, newY]);
+			s.push([numbersCopy, newX, newY]);
+		}
+	}
+	return;
 }
