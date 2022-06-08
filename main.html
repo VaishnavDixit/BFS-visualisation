@@ -5,20 +5,29 @@
 	<title>BFS</title>
 	<link rel="stylesheet" href="style.css">
 	<script src="jquery-3.6.0.js"></script>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap" rel="stylesheet">
 </head>
 
 <body>
-	<div id="header" >
-		<h1>BFS path finding algorithm visualisation</h1>	
+	<div id="header">
+		<h1>BFS path finding algorithm visualisation</h1>
 	</div>
-	<div id="buttons" >
+	<div id="buttons">
 		<button id="startBFS">Start</button>
 		<button id="wallButton">Add walls</button>
 		<button id="clearButton">Clear grid</button>
 		<button id="clearWalls">Clear walls</button>
 	</div>
+	<div>
+		<p id="infoAlgo">During Breadth-first search, its guranteed that we will get a shortest path.</p>
+		<p id="pathLength">Path Length:  <span id="pathLengthAns">-1</span></p>
+		<p id="visitedNodes">Visited Points:  <span id="visitedNodesAns">-1</span></p>
+	</div>
 	<canvas id="myCanvas"></canvas>
-	
+
 	<script src="main.js"></script>
 </body>
+
 </html>
