@@ -10,6 +10,15 @@
 	font-family: 'Montserrat', sans-serif;
 }
 
+body{
+	padding: 0;
+}
+
+#header{
+	width: 100%;
+	min-width: 600px;
+}
+
 #myCanvas {
 	margin-left: auto;
 	margin-right: auto;
@@ -57,7 +66,7 @@
 	width: 100%;
 	height: 80px;
 	margin: auto;
-	min-width: 700px;
+	min-width: 800px;
 	/* color: #a1a1a179; */
 	/* background-color: #47474786; */
 }
@@ -65,12 +74,24 @@
 h1 {
 	display: flex;
 	align-items: center;
-	justify-content: center;
+	justify-content: left;
 	height: 60px;
 	margin: 0;
-	font-size: 40px;
+	font-size: 35px;
+	background-color: lightblue;
 }
 
 #infoAlgo{
 	float: right;
+}
+
+/* #pathLength, #visitedNodes{
+	font-size: 20px;
+} */
+#infoDiv{
+	font-weight: bold;
+	width: 95%;
+	min-width: 1100px;
+	font-size: 20px;
+	margin: auto;
 }

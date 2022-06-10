@@ -1,7 +1,8 @@
 /** @type {CanvasRenderingContext2D} */
-const CANVAS_WIDTH = 90; //>=10
-const CANVAS_HEIGHT = 50;  //>=10
-const PIXEL_WIDTH = 12;
+const CANVAS_WIDTH = 60; // no. of sq. in width
+const CANVAS_HEIGHT = 30;  // no. of sq. in height
+const PIXEL_WIDTH = 23;
+const dir = [[1, 0], [0, 1], [-1, 0], [0, -1]];
 
 class Queue {
 	// Array is used to implement a Queue
@@ -69,6 +70,7 @@ $(document).ready(function () {
 	let startColor = '#ffb703';
 	let endColor = "#af5811";
 	let wallColor = "#0e1a2e";
+	let algorithm = 'bfs';
 	makePixel(endX, endY, ctx, endColor);
 	makePixel(startX, startY, ctx, startColor);
 	var path = [];
@@ -82,10 +84,21 @@ $(document).ready(function () {
 		toShowPath = true;
 		console.log("start bfs");
 		clearAllGreys(ctx, startX, startY, endX, endY, wall);
-		//clearPath(path, ctx, startX, startY, endX, endY, wall, wallColor);
-		// if (toShowPath)
-		// 	clearbfs(startX, startY, endX, endY, ctx, wall, path);
-		path = bfs(startX, startY, endX, endY, ctx, wall, path);
+		switch (algorithm) {
+			case 'bfs':
+				path = bfs(startX, startY, endX, endY, ctx, wall, path);
+				$('#infoAlgo').text("During Breadth-first search, its guranteed that we will get the shortest path.")
+				break;
+			case 'dfs':
+				path = dfs(startX, startY, endX, endY, ctx, wall, path);
+				$('#infoAlgo').text("Depth-first search is not at all suitable to find the shortest path")
+				break;
+		}
+	});
+	$("#algoChoose").click(function () {
+		console.log('opened');
+		var algo = $(this).children("option:selected").val();
+		algorithm = algo;
 	});
 	$('#clearButton').click(() => {//todo
 		ctx.clearRect(0, 0, (CANVAS_WIDTH * PIXEL_WIDTH), (CANVAS_HEIGHT * PIXEL_WIDTH));
@@ -95,12 +108,16 @@ $(document).ready(function () {
 		makePixel(endX, endY, ctx, endColor);
 		makePixel(startX, startY, ctx, startColor);
 		mode = 0;
+		$("#visitedNodesAns").html('0');
+		$("#pathLengthAns").html(0).css("color", 'black');
 		isStartDrag = false;
 		isEndDrag = false;
 		toShowPath = false;
 	});
 	$('#clearWalls').click(() => {//todo
 		eraseWall(wall, ctx);
+		$("#visitedNodesAns").html('0');
+		$("#pathLengthAns").html(0).css("color", 'black');
 	});
 	$("#myCanvas").mouseleave(() => {
 		isDrawing = false;
@@ -171,14 +188,30 @@ $(document).ready(function () {
 					clearAllGreys(ctx, startX, startY, endX, endY, wall);
 					firstMove = false;
 				}
-				else
-					clearbfs(startX, startY, endX, endY, ctx, wall, path);
+				else {
+					switch (algorithm) {
+						case 'bfs':
+							clearBFS(startX, startY, endX, endY, ctx, wall, path);
+							break;
+						case 'dfs':
+							clearDFS(startX, startY, endX, endY, ctx, wall, path);
+							break;
+					}
+				}
 				makePixel(x, y, ctx, startColor);
 				startX = x;
 				startY = y;
 				console.log(`wall[x][y]= ${wall[y][x]}`);
-				if (toShowPath)
-					path = bfs(startX, startY, endX, endY, ctx, wall, path);
+				if (toShowPath) {
+					switch (algorithm) {
+						case 'bfs':
+							path = bfs(startX, startY, endX, endY, ctx, wall, path);
+							break;
+						case 'dfs':
+							path = dfs(startX, startY, endX, endY, ctx, wall, path);
+							break;
+					}
+				}
 			}
 			return;
 		}
@@ -192,8 +225,16 @@ $(document).ready(function () {
 					clearAllGreys(ctx, startX, startY, endX, endY, wall);
 					firstMove = false;
 				}
-				else
-					clearbfs(startX, startY, endX, endY, ctx, wall, path);
+				else {
+					switch (algorithm) {
+						case 'bfs':
+							clearBFS(startX, startY, endX, endY, ctx, wall, path);
+							break;
+						case 'dfs':
+							clearDFS(startX, startY, endX, endY, ctx, wall, path);
+							break;
+					}
+				}
 				// ctx.lineWidth = 2;
 				// ctx.moveTo(endX * PIXEL_WIDTH, endY * PIXEL_WIDTH);
 				// ctx.lineTo(endX * PIXEL_WIDTH + 1, endY * PIXEL_WIDTH + 1);//making the removed points
@@ -201,12 +242,22 @@ $(document).ready(function () {
 				endX = x;
 				endY = y;
 				if (toShowPath)
-					path = bfs(startX, startY, endX, endY, ctx, wall, path);
+					switch (algorithm) {
+						case 'bfs':
+							path = bfs(startX, startY, endX, endY, ctx, wall, path);
+							break;
+						case 'dfs':
+							path = dfs(startX, startY, endX, endY, ctx, wall, path);
+							break;
+					}
 			}
 			return;
 		}
+
+
 		if (mode != 3 || !isDrawing || (endX === x && endY === y) || (startX === x && startY === y))
 			return;
+
 		wall[y][x] = 1;
 		makePixel(x, y, ctx, wallColor);
 	});
@@ -285,10 +336,9 @@ function resetWall(wall) {
 function bfs(sX, sY, eX, eY, ctx, wall) {
 	//console.log("inside bfs function:");
 	let q = new Queue();
-	let dir = [[1, 0], [0, 1], [-1, 0], [0, -1]];
 	let prevPts = [];
 	let isVisited = new Array(wall.length);
-	let visitedNodes=0;
+	let visitedNodes = 0;
 	for (var i = 0; i < CANVAS_HEIGHT; i++)
 		isVisited[i] = new Array(CANVAS_WIDTH);
 	for (var i = 0; i < CANVAS_HEIGHT; i++)
@@ -298,7 +348,6 @@ function bfs(sX, sY, eX, eY, ctx, wall) {
 	q.push([prevPts, Number(sX), Number(sY)]);
 	console.log(q.front());
 	while (!q.empty()) {
-		//onsole.log('new iteration after delay');
 		var current = q.front();
 		prevPts = current[0];
 		let curX = Number(current[1]);
@@ -308,7 +357,7 @@ function bfs(sX, sY, eX, eY, ctx, wall) {
 			continue;
 		visitedNodes++;
 		if (curX === eX && curY === eY) {
-			$("#visitedNodesAns").html(visitedNodes);
+			$("#visitedNodesAns").html(visitedNodes).css("color", 'green');
 			$("#pathLengthAns").html("yes").css("color", 'green');
 			$("#pathLengthAns").html(prevPts.length);
 			displayPath(sX, sY, eX, eY, prevPts, ctx);
@@ -317,7 +366,7 @@ function bfs(sX, sY, eX, eY, ctx, wall) {
 		isVisited[curY][curX] = 1;
 		if ((curX === sX && curY === sY)) { }
 		else {
-			makePixel(curX, curY, ctx, '#a1a1a179');
+			makePixel(curX, curY, ctx, 'lightgrey');
 		}
 		let dirLen = dir.length;
 		for (let index = 0; index < dirLen; index++) {
@@ -334,15 +383,14 @@ function bfs(sX, sY, eX, eY, ctx, wall) {
 			q.push([numbersCopy, newX, newY]);
 		}
 	}
-	$("#pathLengthAns").html("A path DNE").css("color", 'red');
+	$("#pathLengthAns").html("No path exists").css("color", 'red');
 	$("#visitedNodesAns").html(visitedNodes);
 	return [];
 }
 
-function clearbfs(sX, sY, eX, eY, ctx, wall) {
+function clearBFS(sX, sY, eX, eY, ctx, wall) {
 	//console.log("inside bfs function:");
 	let q = new Queue();
-	let dir = [[1, 0], [0, 1], [-1, 0], [0, -1]];
 	let prevPts = [];
 	let isVisited = new Array(wall.length);
 	for (var i = 0; i < CANVAS_HEIGHT; i++)
@@ -385,6 +433,51 @@ function clearbfs(sX, sY, eX, eY, ctx, wall) {
 	return;
 }
 
+function clearDFS(sX, sY, eX, eY, ctx, wall) {
+	//console.log("inside bfs function:");
+	let q = [];
+	let prevPts = [];
+	let isVisited = new Array(wall.length);
+	for (var i = 0; i < CANVAS_HEIGHT; i++)
+		isVisited[i] = new Array(CANVAS_WIDTH);
+	for (var i = 0; i < CANVAS_HEIGHT; i++)
+		for (var j = 0; j < CANVAS_WIDTH; j++)
+			isVisited[i][j] = 0;
+	q.push([prevPts, Number(sX), Number(sY)]);
+	console.log(q[q.length - 1]);
+	while (q.length != 0) {
+		//onsole.log('new iteration after delay');
+		var current = q[q.length - 1];
+		prevPts = current[0];
+		let curX = Number(current[1]);
+		let curY = Number(current[2]);
+		q.pop();
+		if (isVisited[curY][curX] || wall[curY][curX] === 1)
+			continue;
+		if (curX === eX && curY === eY) {
+			return;
+		}
+		isVisited[curY][curX] = 1;
+		if (!(sX === curX && sY === curY) && !(eX === curX && eY === curY))
+			clearPixel(curX, curY, ctx);
+		let dirLen = dir.length;
+		for (let index = 0; index < dirLen; index++) {
+			let d = dir[index];
+			let newX = Number(curX) + Number(d[0]);
+			let newY = Number(curY) + Number(d[1]);
+			if (newX < 0 || newY < 0 || newX >= wall[0].length || newY >= wall.length || wall[newY][newX] === 1)
+				continue;
+			numbersCopy = [];
+			// var pointsAmt = prevPts.length;
+			// for (i = 0; i < pointsAmt; i++)
+			// 	numbersCopy[i] = prevPts[i];
+			numbersCopy.push([newX, newY]);
+			q.push([numbersCopy, newX, newY]);
+		}
+	}
+	return;
+}
+
 function displayPath(sX, sY, eX, eY, points, ctx) {
 	console.log("reached! printing the path:");
 	console.log(points);
@@ -393,6 +486,62 @@ function displayPath(sX, sY, eX, eY, points, ctx) {
 		let p = points[index];
 		if ((p[0] === sX && p[1] === sY) || (p[0] === eX && p[1] === eY))
 			continue;
-		makePixel(p[0], p[1], ctx, 'green');
+		makePixel(p[0], p[1], ctx, 'darkgreen');
 	}
+}
+
+function dfs(sX, sY, eX, eY, ctx, wall) {
+	//console.log("inside bfs function:");
+	let q = [];
+	//let q = new Queue();
+	let prevPts = [];
+	let isVisited = new Array(wall.length);
+	let visitedNodes = 0;
+	for (var i = 0; i < CANVAS_HEIGHT; i++)
+		isVisited[i] = new Array(CANVAS_WIDTH);
+	for (var i = 0; i < CANVAS_HEIGHT; i++)
+		for (var j = 0; j < CANVAS_WIDTH; j++)
+			isVisited[i][j] = 0;
+	prevPts.push([sX, sY]);
+	q.push([prevPts, Number(sX), Number(sY)]);
+	console.log(q[q.length - 1]);
+	while (q.length != 0) {
+		var current = q[q.length - 1];
+		prevPts = current[0];
+		let curX = Number(current[1]);
+		let curY = Number(current[2]);
+		q.pop();
+		if (isVisited[curY][curX] || wall[curY][curX] === 1)
+			continue;
+		visitedNodes++;
+		if (curX === eX && curY === eY) {
+			$("#visitedNodesAns").html(visitedNodes).css("color", 'green');
+			$("#pathLengthAns").html("yes").css("color", 'green');
+			$("#pathLengthAns").html(prevPts.length);
+			displayPath(sX, sY, eX, eY, prevPts, ctx);
+			return prevPts;
+		}
+		isVisited[curY][curX] = 1;
+		if ((curX === sX && curY === sY)) { }
+		else {
+			makePixel(curX, curY, ctx, 'lightgrey');
+		}
+		let dirLen = dir.length;
+		for (let index = 0; index < dirLen; index++) {
+			let d = dir[index];
+			let newX = Number(curX) + Number(d[0]);
+			let newY = Number(curY) + Number(d[1]);
+			if (newX < 0 || newY < 0 || newX >= wall[0].length || newY >= wall.length || wall[newY][newX] === 1)
+				continue;
+			numbersCopy = [];
+			var pointsAmt = prevPts.length;
+			for (i = 0; i < pointsAmt; i++)
+				numbersCopy[i] = prevPts[i];
+			numbersCopy.push([newX, newY]);
+			q.push([numbersCopy, newX, newY]);
+		}
+	}
+	$("#pathLengthAns").html("No path exists").css("color", 'red');
+	$("#visitedNodesAns").html(visitedNodes);
+	return [];
 }
