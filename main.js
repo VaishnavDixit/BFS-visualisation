@@ -2,7 +2,7 @@
 const CANVAS_WIDTH = 60; // no. of sq. in width
 const CANVAS_HEIGHT = 30;  // no. of sq. in height
 const PIXEL_WIDTH = 23;
-const dir = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+const dir = [[1, 0], [0, 1], [-1, 0], [0, -1]];//up, right, 
 
 class Queue {
 	// Array is used to implement a Queue
@@ -51,16 +51,10 @@ class Stack {
 };
 
 $(document).ready(function () {
-	canvas = document.querySelector("#myCanvas");
+	let canvas = document.querySelector("#myCanvas");
 	canvas.height = CANVAS_HEIGHT * PIXEL_WIDTH;
 	canvas.width = CANVAS_WIDTH * PIXEL_WIDTH;
 	var ctx = canvas.getContext("2d");
-	makeGrid(ctx);
-	startX = 10, startY = CANVAS_HEIGHT / 2, endX = CANVAS_WIDTH - 10, endY = CANVAS_HEIGHT / 2;
-	let wall = new Array(CANVAS_HEIGHT);
-	for (var i = 0; i < CANVAS_HEIGHT; i++)
-		wall[i] = new Array(CANVAS_WIDTH);
-	resetWall(wall);
 	let mode = 0;
 	let isStartDrag = false;
 	let isEndDrag = false;
@@ -71,9 +65,15 @@ $(document).ready(function () {
 	let endColor = "#af5811";
 	let wallColor = "#0e1a2e";
 	let algorithm = 'bfs';
+	var path = [];
+	makeGrid(ctx);
+	startX = 10, startY = CANVAS_HEIGHT / 2, endX = CANVAS_WIDTH - 10, endY = CANVAS_HEIGHT / 2;
+	let wall = new Array(CANVAS_HEIGHT);
+	for (var i = 0; i < CANVAS_HEIGHT; i++)
+		wall[i] = new Array(CANVAS_WIDTH);
+	resetWall(wall);
 	makePixel(endX, endY, ctx, endColor);
 	makePixel(startX, startY, ctx, startColor);
-	var path = [];
 	$('#wallButton').click(() => {
 		// if (toShowPath)
 		// 	return;
@@ -335,7 +335,7 @@ function resetWall(wall) {
 
 function bfs(sX, sY, eX, eY, ctx, wall) {
 	//console.log("inside bfs function:");
-	let q = new Queue();
+	let queue = new Queue();
 	let prevPts = [];
 	let isVisited = new Array(wall.length);
 	let visitedNodes = 0;
@@ -345,21 +345,20 @@ function bfs(sX, sY, eX, eY, ctx, wall) {
 		for (var j = 0; j < CANVAS_WIDTH; j++)
 			isVisited[i][j] = 0;
 	prevPts.push([sX, sY]);
-	q.push([prevPts, Number(sX), Number(sY)]);
-	console.log(q.front());
-	while (!q.empty()) {
-		var current = q.front();
+	queue.push([prevPts, Number(sX), Number(sY)]);
+	console.log(queue.front());
+	while (!queue.empty()) {
+		var current = queue.front();
 		prevPts = current[0];
 		let curX = Number(current[1]);
 		let curY = Number(current[2]);
-		q.pop();
+		queue.pop();
 		if (isVisited[curY][curX] || wall[curY][curX] === 1)
 			continue;
 		visitedNodes++;
 		if (curX === eX && curY === eY) {
 			$("#visitedNodesAns").html(visitedNodes).css("color", 'green');
-			$("#pathLengthAns").html("yes").css("color", 'green');
-			$("#pathLengthAns").html(prevPts.length);
+			$("#pathLengthAns").html(prevPts.length).css("color", 'green');
 			displayPath(sX, sY, eX, eY, prevPts, ctx);
 			return prevPts;
 		}
@@ -380,7 +379,7 @@ function bfs(sX, sY, eX, eY, ctx, wall) {
 			for (i = 0; i < pointsAmt; i++)
 				numbersCopy[i] = prevPts[i];
 			numbersCopy.push([newX, newY]);
-			q.push([numbersCopy, newX, newY]);
+			queue.push([numbersCopy, newX, newY]);
 		}
 	}
 	$("#pathLengthAns").html("No path exists").css("color", 'red');
@@ -390,7 +389,7 @@ function bfs(sX, sY, eX, eY, ctx, wall) {
 
 function clearBFS(sX, sY, eX, eY, ctx, wall) {
 	//console.log("inside bfs function:");
-	let q = new Queue();
+	let queue = new Queue();
 	let prevPts = [];
 	let isVisited = new Array(wall.length);
 	for (var i = 0; i < CANVAS_HEIGHT; i++)
@@ -398,15 +397,15 @@ function clearBFS(sX, sY, eX, eY, ctx, wall) {
 	for (var i = 0; i < CANVAS_HEIGHT; i++)
 		for (var j = 0; j < CANVAS_WIDTH; j++)
 			isVisited[i][j] = 0;
-	q.push([prevPts, Number(sX), Number(sY)]);
-	console.log(q.front());
-	while (!q.empty()) {
+	queue.push([prevPts, Number(sX), Number(sY)]);
+	console.log(queue.front());
+	while (!queue.empty()) {
 		//onsole.log('new iteration after delay');
-		var current = q.front();
+		var current = queue.front();
 		prevPts = current[0];
 		let curX = Number(current[1]);
 		let curY = Number(current[2]);
-		q.pop();
+		queue.pop();
 		if (isVisited[curY][curX] || wall[curY][curX] === 1)
 			continue;
 		if (curX === eX && curY === eY) {
@@ -427,7 +426,7 @@ function clearBFS(sX, sY, eX, eY, ctx, wall) {
 			// for (i = 0; i < pointsAmt; i++)
 			// 	numbersCopy[i] = prevPts[i];
 			numbersCopy.push([newX, newY]);
-			q.push([numbersCopy, newX, newY]);
+			queue.push([numbersCopy, newX, newY]);
 		}
 	}
 	return;
@@ -435,7 +434,7 @@ function clearBFS(sX, sY, eX, eY, ctx, wall) {
 
 function clearDFS(sX, sY, eX, eY, ctx, wall) {
 	//console.log("inside bfs function:");
-	let q = [];
+	let stack = [];
 	let prevPts = [];
 	let isVisited = new Array(wall.length);
 	for (var i = 0; i < CANVAS_HEIGHT; i++)
@@ -443,15 +442,15 @@ function clearDFS(sX, sY, eX, eY, ctx, wall) {
 	for (var i = 0; i < CANVAS_HEIGHT; i++)
 		for (var j = 0; j < CANVAS_WIDTH; j++)
 			isVisited[i][j] = 0;
-	q.push([prevPts, Number(sX), Number(sY)]);
-	console.log(q[q.length - 1]);
-	while (q.length != 0) {
+	stack.push([prevPts, Number(sX), Number(sY)]);
+	console.log(stack[stack.length - 1]);
+	while (stack.length != 0) {
 		//onsole.log('new iteration after delay');
-		var current = q[q.length - 1];
+		var current = stack[stack.length - 1];
 		prevPts = current[0];
 		let curX = Number(current[1]);
 		let curY = Number(current[2]);
-		q.pop();
+		stack.pop();
 		if (isVisited[curY][curX] || wall[curY][curX] === 1)
 			continue;
 		if (curX === eX && curY === eY) {
@@ -472,7 +471,7 @@ function clearDFS(sX, sY, eX, eY, ctx, wall) {
 			// for (i = 0; i < pointsAmt; i++)
 			// 	numbersCopy[i] = prevPts[i];
 			numbersCopy.push([newX, newY]);
-			q.push([numbersCopy, newX, newY]);
+			stack.push([numbersCopy, newX, newY]);
 		}
 	}
 	return;
@@ -491,9 +490,7 @@ function displayPath(sX, sY, eX, eY, points, ctx) {
 }
 
 function dfs(sX, sY, eX, eY, ctx, wall) {
-	//console.log("inside bfs function:");
-	let q = [];
-	//let q = new Queue();
+	let stack = [];
 	let prevPts = [];
 	let isVisited = new Array(wall.length);
 	let visitedNodes = 0;
@@ -503,14 +500,14 @@ function dfs(sX, sY, eX, eY, ctx, wall) {
 		for (var j = 0; j < CANVAS_WIDTH; j++)
 			isVisited[i][j] = 0;
 	prevPts.push([sX, sY]);
-	q.push([prevPts, Number(sX), Number(sY)]);
-	console.log(q[q.length - 1]);
-	while (q.length != 0) {
-		var current = q[q.length - 1];
+	stack.push([prevPts, Number(sX), Number(sY)]);
+	console.log(stack[stack.length - 1]);
+	while (stack.length != 0) {
+		var current = stack[stack.length - 1];
 		prevPts = current[0];
 		let curX = Number(current[1]);
 		let curY = Number(current[2]);
-		q.pop();
+		stack.pop();
 		if (isVisited[curY][curX] || wall[curY][curX] === 1)
 			continue;
 		visitedNodes++;
@@ -538,7 +535,7 @@ function dfs(sX, sY, eX, eY, ctx, wall) {
 			for (i = 0; i < pointsAmt; i++)
 				numbersCopy[i] = prevPts[i];
 			numbersCopy.push([newX, newY]);
-			q.push([numbersCopy, newX, newY]);
+			stack.push([numbersCopy, newX, newY]);
 		}
 	}
 	$("#pathLengthAns").html("No path exists").css("color", 'red');
