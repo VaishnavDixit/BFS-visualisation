@@ -1,7 +1,7 @@
 /** @type {CanvasRenderingContext2D} */
-const CANVAS_WIDTH = 60; // no. of sq. in width
-const CANVAS_HEIGHT = 30;  // no. of sq. in height
-const PIXEL_WIDTH = 23;
+const CANVAS_WIDTH = 120; // no. of sq. in width
+const CANVAS_HEIGHT = 60;  // no. of sq. in height
+const PIXEL_WIDTH = 12;
 const dir = [[1, 0], [0, 1], [-1, 0], [0, -1]];//up, right, 
 
 class Queue {
@@ -27,34 +27,11 @@ class Queue {
 	}
 };
 
-class Stack {
-	// Array is used to implement a Queue
-	constructor() {
-		this.items = [];
-	}
-	push(members) {
-		this.items.push([members[0], members[1], members[2]]);
-	}
-	pop() {
-		if (this.empty())
-			return "Underflow";
-		return this.items.pop();
-	}
-	top() {
-		if (this.empty())
-			return "No elements in Stack";
-		return [this.items[0][0], this.items[0][1], this.items[0][2]];
-	}
-	empty() {
-		return this.items.length === 0;
-	}
-};
-
 $(document).ready(function () {
 	let canvas = document.querySelector("#myCanvas");
 	canvas.height = CANVAS_HEIGHT * PIXEL_WIDTH;
 	canvas.width = CANVAS_WIDTH * PIXEL_WIDTH;
-	var ctx = canvas.getContext("2d");
+	let ctx = canvas.getContext("2d");
 	let mode = 0;
 	let isStartDrag = false;
 	let isEndDrag = false;
@@ -65,15 +42,17 @@ $(document).ready(function () {
 	let endColor = "#af5811";
 	let wallColor = "#0e1a2e";
 	let algorithm = 'bfs';
+	let mazeType = 'none';
 	var path = [];
-	makeGrid(ctx);
 	startX = 10, startY = CANVAS_HEIGHT / 2, endX = CANVAS_WIDTH - 10, endY = CANVAS_HEIGHT / 2;
+	makeGrid(ctx);
 	let wall = new Array(CANVAS_HEIGHT);
 	for (var i = 0; i < CANVAS_HEIGHT; i++)
 		wall[i] = new Array(CANVAS_WIDTH);
 	resetWall(wall);
 	makePixel(endX, endY, ctx, endColor);
 	makePixel(startX, startY, ctx, startColor);
+	//makeMaze(startX, startY, endX, endY, wall, wallColor, ctx);
 	$('#wallButton').click(() => {
 		// if (toShowPath)
 		// 	return;
@@ -87,7 +66,7 @@ $(document).ready(function () {
 		switch (algorithm) {
 			case 'bfs':
 				path = bfs(startX, startY, endX, endY, ctx, wall, path);
-				$('#infoAlgo').text("During Breadth-first search, its guranteed that we will get the shortest path.")
+				$('#infoAlgo').text("Breadth-first search gurantees a shortest path.")
 				break;
 			case 'dfs':
 				path = dfs(startX, startY, endX, endY, ctx, wall, path);
@@ -95,10 +74,39 @@ $(document).ready(function () {
 				break;
 		}
 	});
+	$("#mazeChoose").click(function () {
+		console.log('opened');
+		var maze = $(this).children("option:selected").val();
+		mazeType = maze;
+		switch (mazeType) {
+			case 'maze':
+				clearAllGreys(ctx, startX, startY, endX, endY, wall);
+				eraseWall(wall, ctx);
+				makeMaze(startX, startY, endX, endY, wall, wallColor, ctx);
+				break;
+			case 'random':
+				clearAllGreys(ctx, startX, startY, endX, endY, wall);
+				eraseWall(wall, ctx);
+				makeRandomWalls(startX, startY, endX, endY, wall, wallColor, ctx);
+				break;
+			default:
+				break;
+		}
+	});
 	$("#algoChoose").click(function () {
 		console.log('opened');
 		var algo = $(this).children("option:selected").val();
-		algorithm = algo;
+		//mazeType = maze;
+		switch (algo) {
+			case 'bfs':
+				algorithm='bfs';
+				break;
+			case 'dfs':
+				algorithm='dfs';
+				break;
+			default:
+				break;
+		}
 	});
 	$('#clearButton').click(() => {//todo
 		ctx.clearRect(0, 0, (CANVAS_WIDTH * PIXEL_WIDTH), (CANVAS_HEIGHT * PIXEL_WIDTH));
@@ -541,4 +549,129 @@ function dfs(sX, sY, eX, eY, ctx, wall) {
 	$("#pathLengthAns").html("No path exists").css("color", 'red');
 	$("#visitedNodesAns").html(visitedNodes);
 	return [];
+}
+
+function connect(parent, rank, a, b) {
+	console.log('hii');
+	let parentA = find(parent, parent[a]);
+	let parentB = find(parent, parent[b]);
+	console.log(parentA + 'and' + parentB);
+	if (parentA === parentB)
+		return;
+	if (rank[parentA] >= rank[parentB]) {
+		parent[parentB] = parentA;
+		rank[parentA] += rank[parentB];
+	} else {
+		parent[parentA] = parentB;
+		rank[parentB] += rank[parentA];
+	}
+}
+
+function find(parent, a) {
+	//console.log(a + 'inside find' + parent[a]);
+	if (parent[a] === a)
+		return a;
+	else {
+		parent[a] = find(parent, parent[a]);
+		return parent[a];
+	}
+}
+
+function isConnected(parent, a, b) {
+	return find(a) === find(b);
+}
+
+function makeMaze(sX, sY, eX, eY, wall, wallColor, ctx) {
+	var wallsList = [];
+	var wallsCorners = [];
+
+	for (var i = 0; i <= CANVAS_HEIGHT - 2; i += 2)
+		for (var j = 0; j <= CANVAS_WIDTH - 2; j += 2) {
+			if ((sX == j && sY == i) || (eX == j && eY == i))
+				continue;
+			makePixel(j, i, ctx, wallColor);
+			wall[i][j] = 1;
+			wallsCorners.push([i, j]);
+			if (!((sX == j + 1 && sY == i) || (eX == j + 1 && eY == i)))
+				wallsList.push([i, j + 1]);
+			if (!((sX == j && sY == i + 1) || (eX == j && eY == i + 1)))
+				wallsList.push([i + 1, j]);
+		}
+	let lenW = wallsList.length;
+	let lenC = wallsCorners.length;
+	let parent = new Array(lenC);
+	let rank = new Array(lenC);
+	for (let i = 0; i < lenC; i++) {
+		parent[i] = i;
+		rank[i] = 1;
+	}
+	while (lenW > 1) {
+		lenW = wallsList.length;
+		let randomIndex = Math.floor(Math.random() * (lenW));
+		let i = wallsList[randomIndex][0];
+		let j = wallsList[randomIndex][1];
+		if (i % 2 === 1) {//if i is odd
+			let wp1 = [i - 1, j];
+			let wp2 = [i + 1, j];
+			let ind1 = -1, ind2 = -1;
+			for (let i = 0; i < lenC; i++)
+				if (wallsCorners[i][0] === wp1[0] && wallsCorners[i][1] === wp1[1]) {
+					ind1 = i;
+					break;
+				}
+			for (let i = 0; i < lenC; i++)
+				if (wallsCorners[i][0] === wp2[0] && wallsCorners[i][1] === wp2[1]) {
+					ind2 = i;
+					break;
+				}
+			let var1 = find(parent, ind1);
+			if (find(parent, ind1) != find(parent, ind2)) {
+				connect(parent, rank, ind1, ind2);
+				makePixel(j, i, ctx, wallColor);
+				wall[i][j] = 1;
+			}
+			wallsList.splice(randomIndex, 1);
+		}
+		else if (j % 2 === 1) {//if j is odd
+			let wp1 = [i, j - 1];
+			let wp2 = [i, j + 1];
+			let ind1 = -1, ind2 = -1;
+			for (let index = 0; index < lenC; index++) {
+				if (wallsCorners[index][0] === wp1[0] && wallsCorners[index][1] === wp1[1]) {
+					ind1 = index;
+					break;
+				}
+			}
+			for (let index = 0; index < lenC; index++)
+				if (wallsCorners[index][0] === wp2[0] && wallsCorners[index][1] === wp2[1]) {
+					ind2 = index;
+					break;
+				}
+			if (ind1 == -1 || ind2 == -1) {
+				console.log(ind1 + ',,' + ind2 + ' ' + " err: not fonind");
+			}
+			console.log(ind1 + ',' + ind2);
+			let var1 = find(parent, ind1);
+			console.log(var1);
+			if (find(parent, ind1) != find(parent, ind2)) {
+				connect(parent, rank, ind1, ind2);
+				makePixel(j, i, ctx, wallColor);
+				wall[i][j] = 1;
+			}
+			wallsList.splice(randomIndex, 1);
+		}
+	}
+}
+
+function makeRandomWalls(sX, sY, eX, eY, wall, wallColor, ctx) {
+	for (let i = 0; i < CANVAS_HEIGHT; i++)
+		for (let j = 0; j < CANVAS_WIDTH; j++) {
+			if ((startX === j && startY === i) || (endX === j && endY === i))
+				continue;
+			var prob = Math.floor(Math.random() * 1.5);
+			if (prob){
+				makePixel(j, i, ctx, wallColor);
+				wall[i][j]=1;
+			}
+		}
 }

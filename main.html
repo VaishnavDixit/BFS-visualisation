@@ -12,20 +12,26 @@
 
 <body>
 	<div id="header">
-		<h1>Pathfinding algorithms visualiser</h1>
+		<h1>Pathfinding visualiser</h1>
 	</div>
 	<div id="buttons">
 		<button id="startBFS">Start</button>
 		<button id="wallButton">Add walls</button>
 		<button id="clearButton">Clear grid</button>
 		<button id="clearWalls">Clear walls</button>
-		<select id="algoChoose">
+		<select id ="mazeChoose">
+			<option value="" selected disabled hidden>Choose your wall type</option>
+			<option value="random">Random Pixels</option>
+			<option value="maze">Generate a maze</option>
+		</select>
+		<select id="algoChoose" >
+			<!-- <option value="" selected disabled hidden>Choose your Algo</option> -->
 			<option value="bfs">Breadth-first search</option>
 			<option value="dfs">Depth-first search</option>
 		</select>
 	</div>
 	<div id="infoDiv">
-		<p id="infoAlgo">During Breadth-first search, its guranteed that we will get a shortest path.</p>
+		<p id="infoAlgo"></p>
 		<p id="pathLength">Path Length: <span id="pathLengthAns">0</span></p>
 		<p id="visitedNodes">Visited Points: <span id="visitedNodesAns">0</span></p>
 	</div>

@@ -1,4 +1,5 @@
 :root {
+	--bgColor: #1B2430;
 	--pathColor: #3d5a80;
 	--wallColor: #587cb9;
 	--startColor: #d8b96b;
@@ -12,6 +13,7 @@
 
 body {
 	padding: 0;
+	background-color: var(--bgColor);
 }
 
 #header {
@@ -29,9 +31,10 @@ body {
 }
 
 #buttons>select {
-	width: 200px;
+	width: 235px;
 	height: 70%;
 	color: black;
+	padding-left: 10px;
 	margin-left: 20px;
 	margin-right: 20px;
 	font-size: 18px;
@@ -40,6 +43,9 @@ body {
 	border: 1px solid black;
 	transition: border 0s ease;
 	cursor: pointer;
+}
+#buttons>select:hover {
+	border: 2px solid black;
 }
 
 #buttons>button {
@@ -80,7 +86,7 @@ body {
 	width: 100%;
 	height: 80px;
 	margin: auto;
-	min-width: 800px;
+	min-width: 1300px;
 	/* color: #a1a1a179; */
 	/* background-color: #47474786; */
 }
