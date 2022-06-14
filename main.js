@@ -1,7 +1,7 @@
 /** @type {CanvasRenderingContext2D} */
-const CANVAS_WIDTH = 50; // no. of sq. in width
-const CANVAS_HEIGHT = 30;  // no. of sq. in height
-const PIXEL_WIDTH = 20;
+const CANVAS_WIDTH = 100; // no. of sq. in width
+const CANVAS_HEIGHT = 60;  // no. of sq. in height
+const PIXEL_WIDTH = 15;
 const dir = [[1, 0], [0, 1], [-1, 0], [0, -1]];//up, right, 
 
 class Queue {
@@ -373,7 +373,7 @@ function bfs(sX, sY, eX, eY, ctx, wall) {
 		isVisited[curY][curX] = 1;
 		if ((curX === sX && curY === sY)) { }
 		else {
-			makePixel(curX, curY, ctx, 'lightgrey');
+			makePixel(curX, curY, ctx, 'lightgreen');
 		}
 		let dirLen = dir.length;
 		for (let index = 0; index < dirLen; index++) {
@@ -529,7 +529,7 @@ function dfs(sX, sY, eX, eY, ctx, wall) {
 		isVisited[curY][curX] = 1;
 		if ((curX === sX && curY === sY)) { }
 		else {
-			makePixel(curX, curY, ctx, 'lightgrey');
+			makePixel(curX, curY, ctx, 'lightgreen');
 		}
 		let dirLen = dir.length;
 		for (let index = 0; index < dirLen; index++) {
@@ -552,10 +552,10 @@ function dfs(sX, sY, eX, eY, ctx, wall) {
 }
 
 function connect(parent, rank, a, b) {
-	console.log('hii');
+	//console.log('hii');
 	let parentA = find(parent, parent[a]);
 	let parentB = find(parent, parent[b]);
-	console.log(parentA + 'and' + parentB);
+	//console.log(parentA + 'and' + parentB);
 	if (parentA === parentB)
 		return;
 	if (rank[parentA] >= rank[parentB]) {
@@ -629,6 +629,8 @@ function makeMaze(sX, sY, eX, eY, wall, wallColor, ctx) {
 				connect(parent, rank, ind1, ind2);
 				makePixel(j, i, ctx, wallColor);
 				wall[i][j] = 1;
+			}else{
+				console.log('already connected. :)');
 			}
 			wallsList.splice(randomIndex, 1);
 		}
@@ -650,9 +652,9 @@ function makeMaze(sX, sY, eX, eY, wall, wallColor, ctx) {
 			if (ind1 == -1 || ind2 == -1) {
 				console.log(ind1 + ',,' + ind2 + ' ' + " err: not fonind");
 			}
-			console.log(ind1 + ',' + ind2);
+			//console.log(ind1 + ',' + ind2);
 			let var1 = find(parent, ind1);
-			console.log(var1);
+			//console.log(var1);
 			if (find(parent, ind1) != find(parent, ind2)) {
 				connect(parent, rank, ind1, ind2);
 				makePixel(j, i, ctx, wallColor);
@@ -661,6 +663,7 @@ function makeMaze(sX, sY, eX, eY, wall, wallColor, ctx) {
 			wallsList.splice(randomIndex, 1);
 		}
 	}
+	console.log(parent);
 }
 
 function makeRandomWalls(sX, sY, eX, eY, wall, wallColor, ctx) {
