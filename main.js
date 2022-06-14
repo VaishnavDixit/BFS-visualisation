@@ -1,7 +1,7 @@
 /** @type {CanvasRenderingContext2D} */
-const CANVAS_WIDTH = 120; // no. of sq. in width
-const CANVAS_HEIGHT = 60;  // no. of sq. in height
-const PIXEL_WIDTH = 12;
+const CANVAS_WIDTH = 50; // no. of sq. in width
+const CANVAS_HEIGHT = 30;  // no. of sq. in height
+const PIXEL_WIDTH = 20;
 const dir = [[1, 0], [0, 1], [-1, 0], [0, -1]];//up, right, 
 
 class Queue {
@@ -89,6 +89,11 @@ $(document).ready(function () {
 				eraseWall(wall, ctx);
 				makeRandomWalls(startX, startY, endX, endY, wall, wallColor, ctx);
 				break;
+			case 'vert':
+				clearAllGreys(ctx, startX, startY, endX, endY, wall);
+				eraseWall(wall, ctx);
+				makeVerticalWalls(startX, startY, endX, endY, wall, wallColor, ctx);
+				break;
 			default:
 				break;
 		}
@@ -99,10 +104,10 @@ $(document).ready(function () {
 		//mazeType = maze;
 		switch (algo) {
 			case 'bfs':
-				algorithm='bfs';
+				algorithm = 'bfs';
 				break;
 			case 'dfs':
-				algorithm='dfs';
+				algorithm = 'dfs';
 				break;
 			default:
 				break;
@@ -121,11 +126,6 @@ $(document).ready(function () {
 		isStartDrag = false;
 		isEndDrag = false;
 		toShowPath = false;
-	});
-	$('#clearWalls').click(() => {//todo
-		eraseWall(wall, ctx);
-		$("#visitedNodesAns").html('0');
-		$("#pathLengthAns").html(0).css("color", 'black');
 	});
 	$("#myCanvas").mouseleave(() => {
 		isDrawing = false;
@@ -669,9 +669,23 @@ function makeRandomWalls(sX, sY, eX, eY, wall, wallColor, ctx) {
 			if ((startX === j && startY === i) || (endX === j && endY === i))
 				continue;
 			var prob = Math.floor(Math.random() * 1.5);
-			if (prob){
+			if (prob) {
 				makePixel(j, i, ctx, wallColor);
-				wall[i][j]=1;
+				wall[i][j] = 1;
 			}
 		}
+}
+
+function makeVerticalWalls(sX, sY, eX, eY, wall, wallColor, ctx) {
+	for(let i=0; i<CANVAS_WIDTH; i+=2){
+		for(let j=0; j<CANVAS_HEIGHT; j++){
+			var prob=Math.floor(Math.random()*10);
+			if(prob){
+				if((i==sX && j==sY) || (i==eX && j==eY))
+					continue;
+				makePixel(i,j,ctx,wallColor);
+				wall[j][i]=1;
+			}
+		}
+	}
 }
