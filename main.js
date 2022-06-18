@@ -1,7 +1,7 @@
 /** @type {CanvasRenderingContext2D} */
-const CANVAS_WIDTH = 100; // no. of sq. in width
-const CANVAS_HEIGHT = 60;  // no. of sq. in height
-const PIXEL_WIDTH = 15;
+const CANVAS_WIDTH = 80; // no. of sq. in width
+const CANVAS_HEIGHT = 30;  // no. of sq. in height
+const PIXEL_WIDTH = 20;
 const dir = [[1, 0], [0, 1], [-1, 0], [0, -1]];//up, right, 
 
 class Queue {
@@ -74,10 +74,43 @@ $(document).ready(function () {
 				break;
 		}
 	});
-	$("#mazeChoose").click(function () {
+	// $("#mazeChoose").change((asd)=>{
+	// 	console.log('opened');
+	// 	var maze = $(this).children("option:selected").val();
+	// 	mazeType = maze;
+	// 	console.log(maze);
+	// 	console.log();
+	// 	switch (mazeType) {
+	// 		case 'maze':
+	// 			clearAllGreys(ctx, startX, startY, endX, endY, wall);
+	// 			eraseWall(wall, ctx);
+	// 			makeMaze(startX, startY, endX, endY, wall, wallColor, ctx);
+	// 			break;
+	// 		case 'random':
+	// 			clearAllGreys(ctx, startX, startY, endX, endY, wall);
+	// 			eraseWall(wall, ctx);
+	// 			makeRandomWalls(startX, startY, endX, endY, wall, wallColor, ctx);
+	// 			break;
+	// 		case 'vert':
+	// 			clearAllGreys(ctx, startX, startY, endX, endY, wall);
+	// 			eraseWall(wall, ctx);
+	// 			makeVerticalWalls(startX, startY, endX, endY, wall, wallColor, ctx);
+	// 			break;
+	// 		default:
+	// 			break;
+	// 	}
+	// });
+	// $('#buttons > button').click(()=>{
+	// 	console.log("asdgaggfdfgfgdfgdgdfd");
+	// })
+	// $('#mazeChoose > option').click(()=>{
+	// 	console.log("asdgaggfdfgfgdfgdgdfd");
+	// })
+	$("#mazeChoose").change(function () {
 		console.log('opened');
-		var maze = $(this).children("option:selected").val();
+		var maze = $(this).val();
 		mazeType = maze;
+		console.log(maze);
 		switch (mazeType) {
 			case 'maze':
 				clearAllGreys(ctx, startX, startY, endX, endY, wall);
@@ -98,9 +131,9 @@ $(document).ready(function () {
 				break;
 		}
 	});
-	$("#algoChoose").click(function () {
+	$("#algoChoose").change(function () {
 		console.log('opened');
-		var algo = $(this).children("option:selected").val();
+		var algo = $(this).val();
 		//mazeType = maze;
 		switch (algo) {
 			case 'bfs':
@@ -290,12 +323,12 @@ function clearPath(path, ctx, sX, sY, eX, eY, wall, wallColor) {
 }
 
 function makePixel(x, y, ctx, color, gap = 1) {
-	try {
-		if (gap >= PIXEL_WIDTH) throw "gap > pixelWidth";
-	} catch (err) {
-		console.log("err->" + err);
-		return;
-	}
+	// try {
+	// 	if (gap >= PIXEL_WIDTH) throw "gap > pixelWidth";
+	// } catch (err) {
+	// 	console.log("err->" + err);
+	// 	return;
+	// }
 	x *= PIXEL_WIDTH;
 	x += gap;
 	y *= PIXEL_WIDTH;
@@ -629,7 +662,7 @@ function makeMaze(sX, sY, eX, eY, wall, wallColor, ctx) {
 				connect(parent, rank, ind1, ind2);
 				makePixel(j, i, ctx, wallColor);
 				wall[i][j] = 1;
-			}else{
+			} else {
 				console.log('already connected. :)');
 			}
 			wallsList.splice(randomIndex, 1);
@@ -680,14 +713,14 @@ function makeRandomWalls(sX, sY, eX, eY, wall, wallColor, ctx) {
 }
 
 function makeVerticalWalls(sX, sY, eX, eY, wall, wallColor, ctx) {
-	for(let i=0; i<CANVAS_WIDTH; i+=2){
-		for(let j=0; j<CANVAS_HEIGHT; j++){
-			var prob=Math.floor(Math.random()*10);
-			if(prob){
-				if((i==sX && j==sY) || (i==eX && j==eY))
+	for (let i = 0; i < CANVAS_WIDTH; i += 2) {
+		for (let j = 0; j < CANVAS_HEIGHT; j++) {
+			var prob = Math.floor(Math.random() * 10);
+			if (prob) {
+				if ((i == sX && j == sY) || (i == eX && j == eY))
 					continue;
-				makePixel(i,j,ctx,wallColor);
-				wall[j][i]=1;
+				makePixel(i, j, ctx, wallColor);
+				wall[j][i] = 1;
 			}
 		}
 	}
