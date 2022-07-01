@@ -154,7 +154,7 @@ $(document).ready(function () {
 		makePixel(endX, endY, ctx, endColor);
 		makePixel(startX, startY, ctx, startColor);
 		mode = 0;
-		$("#visitedNodesAns").html('0');
+		$("#visitedNodesAns").html(0).css("color", 'black');
 		$("#pathLengthAns").html(0).css("color", 'black');
 		isStartDrag = false;
 		isEndDrag = false;
