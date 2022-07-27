@@ -1,7 +1,7 @@
 /** @type {CanvasRenderingContext2D} */
-const CANVAS_WIDTH = 80; // no. of sq. in width
-const CANVAS_HEIGHT = 30;  // no. of sq. in height
-const PIXEL_WIDTH = 20;
+const CANVAS_WIDTH = 150; // no. of sq. in width
+const CANVAS_HEIGHT = 50;  // no. of sq. in height
+const PIXEL_WIDTH = 12;
 const dir = [[1, 0], [0, 1], [-1, 0], [0, -1]];//up, right, 
 
 class Queue {
@@ -390,7 +390,7 @@ function bfs(sX, sY, eX, eY, ctx, wall) {
 			queue.push([numbersCopy, newX, newY]);
 		}
 	}
-	$("#pathLengthAns").html("No path exists").css("color", 'red');
+	$("#pathLengthAns").html("No path exists!").css("color", 'red');
 	$("#visitedNodesAns").html(visitedNodes);
 	return [];
 }
@@ -584,7 +584,6 @@ function isConnected(parent, a, b) {
 function makeMaze(sX, sY, eX, eY, wall, wallColor, ctx) {
 	var wallsList = [];
 	var wallsCorners = [];
-
 	for (var i = 0; i <= CANVAS_HEIGHT - 2; i += 2)
 		for (var j = 0; j <= CANVAS_WIDTH - 2; j += 2) {
 			if ((sX == j && sY == i) || (eX == j && eY == i))
