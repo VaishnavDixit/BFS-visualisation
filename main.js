@@ -52,7 +52,6 @@ $(document).ready(function () {
 	resetWall(wall);
 	makePixel(endX, endY, ctx, endColor);
 	makePixel(startX, startY, ctx, startColor);
-	//makeMaze(startX, startY, endX, endY, wall, wallColor, ctx);
 	$('#wallButton').click(() => {
 		// if (toShowPath)
 		// 	return;
@@ -74,38 +73,6 @@ $(document).ready(function () {
 				break;
 		}
 	});
-	// $("#mazeChoose").change((asd)=>{
-	// 	console.log('opened');
-	// 	var maze = $(this).children("option:selected").val();
-	// 	mazeType = maze;
-	// 	console.log(maze);
-	// 	console.log();
-	// 	switch (mazeType) {
-	// 		case 'maze':
-	// 			clearAllGreys(ctx, startX, startY, endX, endY, wall);
-	// 			eraseWall(wall, ctx);
-	// 			makeMaze(startX, startY, endX, endY, wall, wallColor, ctx);
-	// 			break;
-	// 		case 'random':
-	// 			clearAllGreys(ctx, startX, startY, endX, endY, wall);
-	// 			eraseWall(wall, ctx);
-	// 			makeRandomWalls(startX, startY, endX, endY, wall, wallColor, ctx);
-	// 			break;
-	// 		case 'vert':
-	// 			clearAllGreys(ctx, startX, startY, endX, endY, wall);
-	// 			eraseWall(wall, ctx);
-	// 			makeVerticalWalls(startX, startY, endX, endY, wall, wallColor, ctx);
-	// 			break;
-	// 		default:
-	// 			break;
-	// 	}
-	// });
-	// $('#buttons > button').click(()=>{
-	// 	console.log("asdgaggfdfgfgdfgdgdfd");
-	// })
-	// $('#mazeChoose > option').click(()=>{
-	// 	console.log("asdgaggfdfgfgdfgdgdfd");
-	// })
 	$("#mazeChoose").change(function () {
 		console.log('opened');
 		var maze = $(this).val();
